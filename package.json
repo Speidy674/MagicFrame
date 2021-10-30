@@ -5,7 +5,7 @@
   "main": "app/main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-	"prepare": "husky install"
+    "prepare": "husky install"
   },
   "repository": {
     "type": "git",
@@ -26,9 +26,28 @@
   },
   "homepage": "https://github.com/Speidy674/MagicFrame#readme",
   "dependencies": {
-    "electron": "^15.3.0"
+    "colors": "^1.4.0",
+    "console-stamp": "^3.0.3",
+    "electron": "^15.3.0",
+    "express-ipfilter": "^1.2.0",
+    "feedme": "^2.0.2",
+    "helmet": "^4.6.0",
+    "module-alias": "^2.2.2",
+    "node-fetch": "^3.0.0",
+    "socket.io": "^4.3.1"
   },
   "devDependencies": {
-    "husky": "^7.0.4"
+    "husky": "^7.0.4",
+    "prettier": "2.4.1",
+    "stylelint": "^14.0.1",
+    "stylelint-config-prettier": "^9.0.3",
+    "stylelint-config-standard": "^23.0.0",
+    "stylelint-prettier": "^1.2.0"
+  },
+  "_moduleAliases": {
+    "logger": "js/logger.js"
+  },
+  "engines": {
+    "node": ">=12"
   }
 }

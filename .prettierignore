@@ -1,0 +1,4 @@
+# Ignore artifacts:
+/config
+/coverage
+package-lock.json
