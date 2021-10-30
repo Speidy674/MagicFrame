@@ -1,0 +1,34 @@
+{
+  "name": "magicframe",
+  "version": "1.0.0",
+  "description": "MagicFrame is a Digital Photo/Video Frame",
+  "main": "app/main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+	"prepare": "husky install"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Speidy674/MagicFrame.git"
+  },
+  "keywords": [
+    "magic frame",
+    "magic",
+    "frame"
+  ],
+  "author": "Speidy674",
+  "contributors": [
+    "https://github.com/Speidy674/MagicFrame/graphs/contributors"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Speidy674/MagicFrame/issues"
+  },
+  "homepage": "https://github.com/Speidy674/MagicFrame#readme",
+  "dependencies": {
+    "electron": "^15.3.0"
+  },
+  "devDependencies": {
+    "husky": "^7.0.4"
+  }
+}
