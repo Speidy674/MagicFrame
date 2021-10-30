@@ -2,9 +2,10 @@
   "name": "magicframe",
   "version": "1.0.0",
   "description": "MagicFrame is a Digital Photo/Video Frame",
-  "main": "app/main.js",
+  "main": "js/main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "./node_modules/.bin/electron js/main.js",
     "prepare": "husky install"
   },
   "repository": {
@@ -29,6 +30,7 @@
     "colors": "^1.4.0",
     "console-stamp": "^3.0.3",
     "electron": "^15.3.0",
+    "express": "^4.17.1",
     "express-ipfilter": "^1.2.0",
     "feedme": "^2.0.2",
     "helmet": "^4.6.0",
