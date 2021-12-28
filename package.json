@@ -5,7 +5,7 @@
   "main": "js/main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "./node_modules/.bin/electron js/main.js",
+    "start": "electron .",
     "prepare": "husky install"
   },
   "repository": {
@@ -29,7 +29,6 @@
   "dependencies": {
     "colors": "^1.4.0",
     "console-stamp": "^3.0.3",
-    "electron": "^15.3.0",
     "express": "^4.17.1",
     "express-ipfilter": "^1.2.0",
     "feedme": "^2.0.2",
@@ -39,6 +38,7 @@
     "socket.io": "^4.3.1"
   },
   "devDependencies": {
+    "electron": "^15.3.4",
     "husky": "^7.0.4",
     "prettier": "2.4.1",
     "stylelint": "^14.0.1",
