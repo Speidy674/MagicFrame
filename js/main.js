@@ -16,6 +16,7 @@ const electron = require("electron");
 let config = process.env.config ? JSON.parse(process.env.config) : {};
 
 const app = electron.app;
+core.loadConfig();
 
 if (process.env.npm_config_server) {
 	core.start(function (c) {

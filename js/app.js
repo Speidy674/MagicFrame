@@ -68,54 +68,53 @@ function App() {
 		}
 	}
 
-	this.start = function (callback) {
+	this.loadConfig = function (callback) {
 		loadConfig(function (c) {
 			config = c;
 
 			Log.setLogLevel(config.logLevel);
-
-
-			httpServer = new Server(config, function (app, io) {
-				Log.log("Server started ...");
-
-
-				io.on('connection', (socket) => {
-					console.log('a user connected');
-					socket.on('disconnect', () => {
-						console.log('user disconnected');
-					});
-				});
-
-
-				if (typeof callback === "function") {
-					callback(config);
-				}
-
-			});
+			
+			if (typeof callback === "function") {
+				callback(config);
+			}
 		});
 	};
 
-	this.stop = function () {
-		httpServer.close();
-	};
+	this.start = function (callback) {
+		httpServer = new Server(config, function (app, io) {
+			Log.log("Server started ...");
 
-	process.on("SIGINT", () => {
-		Log.log("[SIGINT] Received. Shutting down server...");
-		setTimeout(() => {
-			process.exit(0);
-		}, 3000);
-		this.stop();
-		process.exit(0);
-	});
 
-	process.on("SIGTERM", () => {
-		Log.log("[SIGTERM] Received. Shutting down server...");
-		setTimeout(() => {
-			process.exit(0);
-		}, 3000);
-		this.stop();
-		process.exit(0);
+			io.on('connection', (socket) => {
+				console.log('a user connected');
+				socket.on('disconnect', () => {
+					console.log('user disconnected');
+				});
+			});
 	});
+};
+
+this.stop = function () {
+	httpServer.close();
+};
+
+process.on("SIGINT", () => {
+	Log.log("[SIGINT] Received. Shutting down server...");
+	setTimeout(() => {
+		process.exit(0);
+	}, 3000);
+	this.stop();
+	process.exit(0);
+});
+
+process.on("SIGTERM", () => {
+	Log.log("[SIGTERM] Received. Shutting down server...");
+	setTimeout(() => {
+		process.exit(0);
+	}, 3000);
+	this.stop();
+	process.exit(0);
+});
 }
 
 module.exports = new App();
