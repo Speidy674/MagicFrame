@@ -59,7 +59,7 @@ function Server(config, callback) {
 				return next();
 			}
 			Log.log(err.message);
-			res.status(403).send("This device is not allowed to access your frame. <br> Please check your config.js or config.js.sample to change this.");
+			res.status(403).send("This device is not allowed to access your Magic frame. <br> Please check your config.js change this.");
 		});
 	});
 	app.use(helmet({ contentSecurityPolicy: false }));
