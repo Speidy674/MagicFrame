@@ -6,10 +6,10 @@
 let config = {
 	address: "localhost",
 	port: 8080,
-	basePath: "/",
+
+	//serveronly stuff
 	ipWhitelist: ["127.0.0.1", "::ffff:127.0.0.1", "::1"],
-
-
+	
 	useHttps: false, 		// Support HTTPS or not, default "false" will use HTTP
 	httpsPrivateKey: "", 	// HTTPS private key path, only require when useHttps is true
 	httpsCertificate: "", 	// HTTPS Certificate path, only require when useHttps is true
