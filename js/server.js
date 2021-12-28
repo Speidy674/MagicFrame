@@ -66,7 +66,7 @@ function Server(config, callback) {
 
 	app.use("/js", express.static(__dirname));
 
-	const directories = ["/config", "/css", "/fonts"];
+	const directories = ["/config", "/css", "/fonts","/files"];
 	for (const directory of directories) {
 		app.use(directory, express.static(path.resolve(global.root_path + directory)));
 	}

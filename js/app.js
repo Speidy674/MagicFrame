@@ -10,6 +10,7 @@ require("module-alias/register");
 const fs = require("fs");
 const path = require("path");
 const Log = require("logger");
+const { clearInterval } = require("timers");
 const Server = require(`${__dirname}/server`);
 const Utils = require(`${__dirname}/utils`);
 
@@ -40,6 +41,7 @@ process.on("uncaughtException", function (err) {
  */
 function App() {
 	let httpServer;
+	let updatePicInterval;
 
 	/**
 	 * Loads the config file.
@@ -84,9 +86,32 @@ function App() {
 		httpServer = new Server(config, function (app, io) {
 			Log.log("Server started ...");
 
+			var i = 0;
+			var minutes = 1
+			var the_interval = minutes * 60 * 1000;
+			updatePicInterval = setInterval(function() {
+				if(i==0){
+					io.sockets.emit("changePic","https://speidy674.de/img/logo.png");
+					i++;
+				}else if(i==1){
+					io.sockets.emit("changePic","https://wallpapercave.com/wp/wp4771870.jpg");
+					i++;
+				}else if(i==2){
+					io.sockets.emit("changePic","https://cutewallpaper.org/25/beautiful-girl-gif-wallpaper/47-6b76e-gif-20866-desktop-cd12f-wallpaper-4ef16-windows-0bfb8-7-0ce3d-on-5d935-wallpapersafari.gif");
+					i++;
+				}else if(i==3){
+					io.sockets.emit("changePic","https://wallpaperaccess.com/full/24528.png");
+					i = 0 ;
+				}
+				
+			}, the_interval);
+			
+
 
 			io.on('connection', (socket) => {
 				console.log('a user connected');
+				setTimeout(function () {socket.emit("changePic","https://wallpaperaccess.com/full/24528.png");},5000);
+				
 				socket.on('disconnect', () => {
 					console.log('user disconnected');
 				});
@@ -96,6 +121,7 @@ function App() {
 
 this.stop = function () {
 	httpServer.close();
+	clearInterval(updatePicInterval);
 };
 
 process.on("SIGINT", () => {

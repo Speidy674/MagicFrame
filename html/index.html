@@ -6,7 +6,62 @@
     <title>Hello World!</title>
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        var socket = io();
+        var socket = io({
+            extraHeaders: {
+                "my-custom-header": "1234",
+                "width": window.innerWidth,
+                "height": window.innerHeight
+            }
+        });
+
+        socket.on("changePic", (...args) => {
+            console.log(args);
+            loadPic(args);
+
+        });
+
+
+        function loadPic(url) {
+
+            document.getElementById("loader").style.display = "none";
+
+            var oldFrame = document.getElementById("oldFrame");
+            var frame = document.getElementById("frame");
+
+            oldFrame.src = frame.src;
+            frame.src = url;
+
+            oldFrame.style.opacity = 1;
+            frame.style.opacity = 0;
+            oldFrame.style.display = 'block';
+            frame.style.display = 'block';
+
+            oldFrameOP = 1;
+            frameOP = 0.1;
+
+            var timer1 = setInterval(function () {
+                if (oldFrameOP <= 0.1) {
+                    clearInterval(timer1);
+                    oldFrame.style.display = 'none';
+                    oldFrame.src="";
+                }
+                oldFrame.style.opacity = oldFrameOP;
+                oldFrame.style.filter = 'alpha(opacity=' + oldFrameOP * 100 + ")";
+                oldFrameOP -= oldFrameOP * 0.1;
+            }, 50);
+
+            frame.style.display = 'block';
+            var timer2 = setInterval(function () {
+                if (frameOP >= 1) {
+                    clearInterval(timer2);
+                }
+                frame.style.opacity = frameOP;
+                frame.style.filter = 'alpha(opacity=' + frameOP * 100 + ")";
+                frameOP += frameOP * 0.1;
+            }, 50);
+        }
+
+
         console.log("Screen size is " + window.innerWidth + "x" + window.innerHeight);
     </script>
     <style>
@@ -22,7 +77,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background: #181818;
+            background: #121212;
         }
 
         #loader {
@@ -74,12 +129,21 @@
                 transform: rotate(-360deg);
             }
         }
+
+        #frame,
+        #oldFrame {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            object-fit: scale-down;
+        }
     </style>
 </head>
 
 <body>
     <div id="loader"></div>
-
+    <img src="/files/empty.png" id="oldFrame" style="display:none"></img>
+    <img src="/files/empty.png" id="frame" style="display:none"></img>
 </body>
 
 </html>
