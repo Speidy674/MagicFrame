@@ -14,7 +14,7 @@ const { clearInterval } = require("timers");
 const Server = require(`${__dirname}/server`);
 const Utils = require(`${__dirname}/utils`);
 
-const imgFormat = [".jpg",".png",".gif",".jpeg"];
+const imgFormat = [".jpg",".png",".gif",".jpeg",".webp"];
 const vidFormat = [".mp4"];
 
 const formats = imgFormat.concat(vidFormat);
@@ -111,7 +111,7 @@ function App() {
 			Log.log("Server started ...");
 
 			var i = 0;
-			var minutes = 10;
+			var minutes = 1;
 			var the_interval = minutes * 60 * 1000;
 
 			updatePicInterval = setInterval(function() {
