@@ -43,6 +43,8 @@ function App() {
 	let httpServer;
 	let updatePicInterval;
 
+	var frameCons = [];
+
 	/**
 	 * Loads the config file.
 	 *
@@ -87,7 +89,7 @@ function App() {
 			Log.log("Server started ...");
 
 			var i = 0;
-			var minutes = 10;
+			var minutes = 1;
 			var the_interval = minutes * 60 * 1000;
 
 			updatePicInterval = setInterval(function() {
@@ -114,13 +116,20 @@ function App() {
 					i = 0;
 				}
 				
-			}, the_interval);
+			}, the_interval);			
 
 			io.on('connection', (socket) => {
-				console.log('a user connected');
+				const frameID = socket.handshake.headers.frameid;
+				const width = socket.handshake.headers.width;
+				const height = socket.handshake.headers.height;
+
+				frameCons[frameID] = socket;
+				socket.frameID = frameID;
+
+				console.log('Frame connected (ID: '+socket.frameID+'('+socket.id+'))');
 
 				var test = {url : "https://speidy674.de/_vrc/videos/rwby/RWBY%20'Red'%20Trailer.mp4",type : "vid"};
-				io.sockets.emit("change",JSON.stringify(test))
+				setTimeout(function () {io.sockets.emit("change",JSON.stringify(test))},5000);
 				
 				socket.on('disconnect', () => {
 					console.log('user disconnected');

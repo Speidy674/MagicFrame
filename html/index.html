@@ -6,9 +6,13 @@
     <title>Hello World!</title>
     <script src="/socket.io/socket.io.js"></script>
     <script>
+
+        var frameID = window.location.hash.substr(1);
+        var oldType = "";    
+
         var socket = io({
             extraHeaders: {
-                "my-custom-header": "1234",
+                "frameid": frameID,
                 "width": window.innerWidth,
                 "height": window.innerHeight
             }
@@ -48,33 +52,31 @@
                 oldVideo.play();
             }
 
-            oldImg.style.opacity = 1;
-            oldImg.style.display = 'block';
+            if(oldType == "img"){
+                oldImg.style.opacity = 1;
+                oldImg.style.display = 'block';
+                img.style.opacity = 0;
+                img.style.display = 'none';
+            }
 
-            img.style.opacity = 0;
-            img.style.display = 'none';
-
-            oldVideo.style.opacity = 1;
-            oldVideo.style.display = 'block';
-
-            video.style.opacity = 0;
-            video.style.display = 'none';
-            video.pause();
+            if(oldType == "video"){
+                oldVideo.style.opacity = 1;
+                oldVideo.style.display = 'block';
+                video.style.opacity = 0;
+                video.style.display = 'none';                
+            }
         }
 
         function blendFrame(type){
             var oldImg = document.getElementById("oldImg");
             var oldVideo = document.getElementById("oldVideo");
 
-
             var frame = document.getElementById(type);
-
 
             oldFrameOP = 1;
             newTypeOP = 0.1;
 
             var oldFrame = setInterval(function () {
-
                 if (oldFrameOP <= 0.1) {
                     clearInterval(oldFrame);
                     oldImg.style.display = 'none';
@@ -82,12 +84,15 @@
                     oldVideo.style.display = 'none';
                     oldVideo.src="";
                 }
+                if(oldType == "img"){
+                    oldImg.style.opacity = oldFrameOP;
+                    oldImg.style.filter = 'alpha(opacity=' + oldFrameOP * 100 + ")";
+                }
 
-                oldImg.style.opacity = oldFrameOP;
-                oldImg.style.filter = 'alpha(opacity=' + oldFrameOP * 100 + ")";
-
-                oldVideo.style.opacity = oldFrameOP;
-                oldVideo.style.filter = 'alpha(opacity=' + oldFrameOP * 100 + ")";
+                if(oldType == "video"){
+                    oldVideo.style.opacity = oldFrameOP;
+                    oldVideo.style.filter = 'alpha(opacity=' + oldFrameOP * 100 + ")";
+                }
 
                 oldFrameOP -= oldFrameOP * 0.1;
             }, 50);
@@ -102,6 +107,8 @@
                 frame.style.opacity = newTypeOP;
                 frame.style.filter = 'alpha(opacity=' + newTypeOP * 100 + ")";
                 newTypeOP += newTypeOP * 0.1;
+                oldType = type;
+
             }, 50);
         }
 
@@ -114,7 +121,9 @@
             video.src = url;
             video.play();
 
-            blendFrame("video");
+            setTimeout(function () {
+                blendFrame("video");
+            },100);
         }
 
         function loadPic(url) {
@@ -125,7 +134,9 @@
             var img = document.getElementById("img");
             img.src = url;
 
-            blendFrame("img");
+            setTimeout(function () {
+                blendFrame("img");
+            },100);
         }
 
 
@@ -145,6 +156,7 @@
             justify-content: center;
             align-items: center;
             background: #121212;
+            overflow: hidden;
         }
 
         #loader {

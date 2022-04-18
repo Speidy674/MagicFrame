@@ -96,10 +96,15 @@ function App() {
 
     if (config.address == undefined) { config.address = global.config.address; }
     if (config.port == undefined) { config.port = global.config.port; }
+    if (config.frameid == undefined) { config.frameid = global.config.frameid; }
+
+    console.log(config);
 
     const prefix = config.tls ? "https://" : "http://";
 
-    url = prefix + config.address + ":" + config.port + "/";
+    url = prefix + config.address + ":" + config.port + "/#"+config.frameid;
+
+    console.log(url);
 
     createWindow()
 
