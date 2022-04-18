@@ -79,6 +79,10 @@ function App() {
 		}
 	}
 
+	function getTimeLeft(timeout) {
+		return Math.ceil((timeout._idleStart + timeout._idleTimeout)/1000 - process.uptime());
+	}
+
 	this.loadConfig = function (callback) {
 		loadConfig(function (c) {
 			config = c;
@@ -93,6 +97,7 @@ function App() {
 
 	this.loadFileList = function (){
 		Log.log("Load file List ...");
+		filelist = [];
 		var tmpfileList = fs.readdirSync(path.resolve(`${global.root_path}/files/`));
 		tmpfileList.forEach(function (file) {
 			if(file != "empty.png"){
@@ -112,6 +117,21 @@ function App() {
 		return file;
 	}
 
+	function sendFile(file,frameInfo,io){
+		var id = frameInfo.id;					
+		frameInfo.file = file;
+
+		if (vidFormat.some(v => file.includes(v))) {
+			var test = {type : "vid",file:file};
+			io.to(id).emit("change",JSON.stringify(test));
+		}
+		
+		if (imgFormat.some(v => file.includes(v))) {
+			var test = {type : "img",file:file};
+			io.to(id).emit("change",JSON.stringify(test));
+		}
+	}
+
 	this.start = function (callback) {
 		httpServer = new Server(config, function (app, io) {
 			Log.log("Server started ...");
@@ -119,23 +139,12 @@ function App() {
 			var minutes = 10;
 			var the_interval = minutes * 60 * 1000;
 
-			updatePicInterval = setInterval(function() {
-				
+			updatePicInterval = setInterval(function() {				
 				for(var con in frameCons) {
-					var id = frameCons[con];
 					var file = getRandomFile();
-					console.debug(`${con}(${id})|${file}`);
-					if (vidFormat.some(v => file.includes(v))) {
-						var test = {type : "vid",file:file};
-						io.to(id).emit("change",JSON.stringify(test));
-					}
-					
-					if (imgFormat.some(v => file.includes(v))) {
-						var test = {type : "img",file:file};
-						io.to(id).emit("change",JSON.stringify(test));
-					}
-				}
-				
+					console.debug(`${con}(${frameCons[con].id})| ${file}`);
+					sendFile(file,frameCons[con],io);
+				}				
 			}, the_interval);			
 
 			io.on('connection', (socket) => {
@@ -143,27 +152,40 @@ function App() {
 				const width = socket.handshake.headers.width;
 				const height = socket.handshake.headers.height;
 
-				frameCons[frameID] = socket.id;
+				frameCons[frameID] = [];
+
+				frameCons[frameID].id = socket.id;
+				frameCons[frameID].width = width;
+				frameCons[frameID].height = height;
 				socket.frameID = frameID;
 
 				console.log('Frame connected (ID: '+socket.frameID+'('+socket.id+'))');
 
 				var file = getRandomFile();
 
-				if (vidFormat.some(v => file.includes(v))) {
-					var test = {type : "vid",file:file};
-				}
-
-				if (imgFormat.some(v => file.includes(v))) {
-					var test = {type : "img",file:file};
-				}
-
-				setTimeout(function () {socket.emit("change",JSON.stringify(test))},5000);
+				setTimeout(function () {
+					sendFile(file,frameCons[frameID],io);
+				},5000);
 				
 				socket.on('disconnect', () => {
-					console.log('user disconnected');
+					console.log('Frame disconnected (ID: '+socket.frameID+'('+socket.id+'))');
 					delete frameCons[frameID];
 				});
+			});
+
+			app.get("/stats", function (req, res) {
+				var out = `<b>Frame Infos</b>(Next Change: ${getTimeLeft(updatePicInterval)} Seconds)<br/>`;
+				for(var frameID in frameCons) {
+					var frame = frameCons[frameID];
+					out += `Frame ID:${frameID}<br/>
+					Socket ID: ${frame.id}<br/>
+					Width = ${frame.width}<br/>
+					Height = ${frame.height}<br/>
+					File = ${frame.file}<br/>
+					<br/><br/>`;
+				}
+
+				res.send(out);
 			});
 	});
 };

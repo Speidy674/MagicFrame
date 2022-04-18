@@ -93,7 +93,7 @@ function Server(config, callback) {
 	});
 
 	app.get("/data/:file_id", function (req, res) {
-		console.debug(`${req.params.file_id} has been requested`)
+		console.debug(`${req.params.file_id} has been requested`);
 		res.sendFile(path.resolve(`${global.root_path}/files/${req.params.file_id}`));
 	});
 
