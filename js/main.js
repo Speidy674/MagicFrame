@@ -19,6 +19,7 @@ const app = electron.app;
 core.loadConfig();
 
 if (process.env.npm_config_server) {
+	core.loadFileList();
 	core.start(function (c) {
 		config = c;
 	});

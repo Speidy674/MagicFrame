@@ -8,7 +8,8 @@
     <script>
 
         var frameID = window.location.hash.substr(1);
-        var oldType = "";    
+        var oldType = "";
+        var baseUrl = "/data/";
 
         var socket = io({
             extraHeaders: {
@@ -19,16 +20,18 @@
         });
 
         socket.on("change", (...args) => {
+            hideLoader();
             var json = JSON.parse(args);
-            console.log("change to "+json.type+" url: "+json.url);
+            console.log("change to "+json.type+": "+json.file);
 
             if(json.type == "img"){
-                loadPic(json.url);
+                loadPic(baseUrl+json.file+"");
             }else if(json.type == "vid"){
-                loadVid(json.url);
+                loadVid(baseUrl+json.file+"");
             }else{
-                console.error("type "+json.type+"not supported");
+                console.error("type "+json.type+" is not supported");
             }
+
         });
 
         function hideLoader(){
@@ -113,13 +116,14 @@
         }
 
         function loadVid(url){
-
-            hideLoader();
             copyFrame();
 
             var video = document.getElementById("video");
             video.src = url;
             video.play();
+            
+            var img = document.getElementById("img");
+            img.src = "";
 
             setTimeout(function () {
                 blendFrame("video");
@@ -127,12 +131,13 @@
         }
 
         function loadPic(url) {
-
-            hideLoader();
             copyFrame();
 
             var img = document.getElementById("img");
             img.src = url;
+
+            var video = document.getElementById("video");
+            video.src = "";
 
             setTimeout(function () {
                 blendFrame("img");

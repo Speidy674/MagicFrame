@@ -7,6 +7,9 @@ let config = {
 	address: "localhost",
 	port: 8080,
 
+	//client only
+	frameid: "customID",
+
 	//serveronly stuff
 	ipWhitelist: ["127.0.0.1", "::ffff:127.0.0.1", "::1"],
 	
@@ -14,10 +17,7 @@ let config = {
 	httpsPrivateKey: "", 	// HTTPS private key path, only require when useHttps is true
 	httpsCertificate: "", 	// HTTPS Certificate path, only require when useHttps is true
 
-	logLevel: ["INFO", "LOG", "WARN", "ERROR"], // Add "DEBUG" for even more logging
-
-	//client only
-	frameid: "customID"
+	logLevel: ["INFO", "LOG", "WARN", "ERROR"] // Add "DEBUG" for even more logging
 
 };
 

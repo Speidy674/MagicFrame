@@ -14,6 +14,11 @@ const { clearInterval } = require("timers");
 const Server = require(`${__dirname}/server`);
 const Utils = require(`${__dirname}/utils`);
 
+const imgFormat = [".jpg",".png",".gif",".jpeg"];
+const vidFormat = [".mp4"];
+
+const formats = imgFormat.concat(vidFormat);
+
 
 global.version = require(`${__dirname}/../package.json`).version;
 Log.log("Starting MagicFrame Core: v" + global.version);
@@ -44,6 +49,8 @@ function App() {
 	let updatePicInterval;
 
 	var frameCons = [];
+
+	var fileList = []
 
 	/**
 	 * Loads the config file.
@@ -84,35 +91,62 @@ function App() {
 		});
 	};
 
+	this.loadFileList = function (){
+		Log.log("Load file List ...");
+		var tmpfileList = fs.readdirSync(path.resolve(`${global.root_path}/files/`));
+		tmpfileList.forEach(function (file) {
+			if(file != "empty.png"){
+				if (formats.some(v => file.includes(v))) {
+					console.debug(`${file} is supported`);
+					fileList.push(file);
+				}else{				
+					console.debug(`${file} is not supported`);
+				}
+			}
+		});
+	};
+
 	this.start = function (callback) {
 		httpServer = new Server(config, function (app, io) {
 			Log.log("Server started ...");
 
 			var i = 0;
-			var minutes = 1;
+			var minutes = 10;
 			var the_interval = minutes * 60 * 1000;
 
 			updatePicInterval = setInterval(function() {
 
+				var file = fileList[Math.floor(Math.random() * fileList.length)];
+				file = file.replaceAll(" ","%20");
+
+				if (vidFormat.some(v => file.includes(v))) {
+					var test = {type : "vid",file:file};
+				}
+				
+				if (imgFormat.some(v => file.includes(v))) {
+					var test = {type : "img",file:file};
+				}
+				io.sockets.emit("change",JSON.stringify(test))
+
 				if(i==0){
-					var test = {url : "https://speidy674.de/img/logo.png",type : "img"};
-					io.sockets.emit("change",JSON.stringify(test))
+					var test = {url : "https://speidy674.de/img/logo.png",type : "img",file:"empty.png"};
+					//io.sockets.emit("change",JSON.stringify(test))
 					i++;
 				}else if(i==1){
 					var test = {url : "https://wallpapercave.com/wp/wp4771870.jpg",type : "img"};
-					io.sockets.emit("change",JSON.stringify(test))
+					//io.sockets.emit("change",JSON.stringify(test))
 					i++;
 				}else if(i==2){
 					var test = {url : "https://cutewallpaper.org/25/beautiful-girl-gif-wallpaper/47-6b76e-gif-20866-desktop-cd12f-wallpaper-4ef16-windows-0bfb8-7-0ce3d-on-5d935-wallpapersafari.gif",type : "img"};
-					io.sockets.emit("change",JSON.stringify(test))
+					//io.sockets.emit("change",JSON.stringify(test))
 					i++;
 				}else if(i==3){
 					var test = {url : "https://wallpaperaccess.com/full/24528.png",type : "img"};
-					io.sockets.emit("change",JSON.stringify(test))
+					//io.sockets.emit("change",JSON.stringify(test))
 					i++;
 				}else if(i==4){
 					var test = {url : "https://speidy674.de/_vrc/videos/rwby/RWBY%20'Red'%20Trailer.mp4",type : "vid"};
-					io.sockets.emit("change",JSON.stringify(test))
+					//io.sockets.emit("change",JSON.stringify(test))
 					i = 0;
 				}
 				
@@ -128,7 +162,7 @@ function App() {
 
 				console.log('Frame connected (ID: '+socket.frameID+'('+socket.id+'))');
 
-				var test = {url : "https://speidy674.de/_vrc/videos/rwby/RWBY%20'Red'%20Trailer.mp4",type : "vid"};
+				var test = {file : "empty.png",type : "img"};
 				setTimeout(function () {io.sockets.emit("change",JSON.stringify(test))},5000);
 				
 				socket.on('disconnect', () => {
