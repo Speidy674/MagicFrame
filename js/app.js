@@ -116,7 +116,7 @@ function App() {
 		httpServer = new Server(config, function (app, io) {
 			Log.log("Server started ...");
 
-			var minutes = 1;
+			var minutes = 10;
 			var the_interval = minutes * 60 * 1000;
 
 			updatePicInterval = setInterval(function() {
@@ -124,7 +124,7 @@ function App() {
 				for(var con in frameCons) {
 					var id = frameCons[con];
 					var file = getRandomFile();
-					console.log(id+"|"+file);
+					console.debug(`${con}(${id})|${file}`);
 					if (vidFormat.some(v => file.includes(v))) {
 						var test = {type : "vid",file:file};
 						io.to(id).emit("change",JSON.stringify(test));
@@ -158,7 +158,7 @@ function App() {
 					var test = {type : "img",file:file};
 				}
 
-				setTimeout(function () {io.sockets.emit("change",JSON.stringify(test))},5000);
+				setTimeout(function () {socket.emit("change",JSON.stringify(test))},5000);
 				
 				socket.on('disconnect', () => {
 					console.log('user disconnected');
