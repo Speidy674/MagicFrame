@@ -116,45 +116,24 @@ function App() {
 		httpServer = new Server(config, function (app, io) {
 			Log.log("Server started ...");
 
-			var i = 0;
-			var minutes = 10;
+			var minutes = 1;
 			var the_interval = minutes * 60 * 1000;
 
 			updatePicInterval = setInterval(function() {
-
-				var file = getRandomFile();
-
-				if (vidFormat.some(v => file.includes(v))) {
-					var test = {type : "vid",file:file};
-					io.sockets.emit("change",JSON.stringify(test));
-				}
 				
-				if (imgFormat.some(v => file.includes(v))) {
-					var test = {type : "img",file:file};
-					io.sockets.emit("change",JSON.stringify(test));
-				}
-
-
-				if(i==0){
-					var test = {url : "https://speidy674.de/img/logo.png",type : "img",file:"empty.png"};
-					//io.sockets.emit("change",JSON.stringify(test))
-					i++;
-				}else if(i==1){
-					var test = {url : "https://wallpapercave.com/wp/wp4771870.jpg",type : "img"};
-					//io.sockets.emit("change",JSON.stringify(test))
-					i++;
-				}else if(i==2){
-					var test = {url : "https://cutewallpaper.org/25/beautiful-girl-gif-wallpaper/47-6b76e-gif-20866-desktop-cd12f-wallpaper-4ef16-windows-0bfb8-7-0ce3d-on-5d935-wallpapersafari.gif",type : "img"};
-					//io.sockets.emit("change",JSON.stringify(test))
-					i++;
-				}else if(i==3){
-					var test = {url : "https://wallpaperaccess.com/full/24528.png",type : "img"};
-					//io.sockets.emit("change",JSON.stringify(test))
-					i++;
-				}else if(i==4){
-					var test = {url : "https://speidy674.de/_vrc/videos/rwby/RWBY%20'Red'%20Trailer.mp4",type : "vid"};
-					//io.sockets.emit("change",JSON.stringify(test))
-					i = 0;
+				for(var con in frameCons) {
+					var id = frameCons[con];
+					var file = getRandomFile();
+					console.log(id+"|"+file);
+					if (vidFormat.some(v => file.includes(v))) {
+						var test = {type : "vid",file:file};
+						io.to(id).emit("change",JSON.stringify(test));
+					}
+					
+					if (imgFormat.some(v => file.includes(v))) {
+						var test = {type : "img",file:file};
+						io.to(id).emit("change",JSON.stringify(test));
+					}
 				}
 				
 			}, the_interval);			
@@ -164,7 +143,7 @@ function App() {
 				const width = socket.handshake.headers.width;
 				const height = socket.handshake.headers.height;
 
-				frameCons[frameID] = socket;
+				frameCons[frameID] = socket.id;
 				socket.frameID = frameID;
 
 				console.log('Frame connected (ID: '+socket.frameID+'('+socket.id+'))');
