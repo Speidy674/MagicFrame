@@ -87,30 +87,40 @@ function App() {
 			Log.log("Server started ...");
 
 			var i = 0;
-			var minutes = 1
+			var minutes = 10;
 			var the_interval = minutes * 60 * 1000;
+
 			updatePicInterval = setInterval(function() {
+
 				if(i==0){
-					io.sockets.emit("changePic","https://speidy674.de/img/logo.png");
+					var test = {url : "https://speidy674.de/img/logo.png",type : "img"};
+					io.sockets.emit("change",JSON.stringify(test))
 					i++;
 				}else if(i==1){
-					io.sockets.emit("changePic","https://wallpapercave.com/wp/wp4771870.jpg");
+					var test = {url : "https://wallpapercave.com/wp/wp4771870.jpg",type : "img"};
+					io.sockets.emit("change",JSON.stringify(test))
 					i++;
 				}else if(i==2){
-					io.sockets.emit("changePic","https://cutewallpaper.org/25/beautiful-girl-gif-wallpaper/47-6b76e-gif-20866-desktop-cd12f-wallpaper-4ef16-windows-0bfb8-7-0ce3d-on-5d935-wallpapersafari.gif");
+					var test = {url : "https://cutewallpaper.org/25/beautiful-girl-gif-wallpaper/47-6b76e-gif-20866-desktop-cd12f-wallpaper-4ef16-windows-0bfb8-7-0ce3d-on-5d935-wallpapersafari.gif",type : "img"};
+					io.sockets.emit("change",JSON.stringify(test))
 					i++;
 				}else if(i==3){
-					io.sockets.emit("changePic","https://wallpaperaccess.com/full/24528.png");
-					i = 0 ;
+					var test = {url : "https://wallpaperaccess.com/full/24528.png",type : "img"};
+					io.sockets.emit("change",JSON.stringify(test))
+					i++;
+				}else if(i==4){
+					var test = {url : "https://speidy674.de/_vrc/videos/rwby/RWBY%20'Red'%20Trailer.mp4",type : "vid"};
+					io.sockets.emit("change",JSON.stringify(test))
+					i = 0;
 				}
 				
 			}, the_interval);
-			
-
 
 			io.on('connection', (socket) => {
 				console.log('a user connected');
-				setTimeout(function () {socket.emit("changePic","https://wallpaperaccess.com/full/24528.png");},5000);
+
+				var test = {url : "https://speidy674.de/_vrc/videos/rwby/RWBY%20'Red'%20Trailer.mp4",type : "vid"};
+				io.sockets.emit("change",JSON.stringify(test))
 				
 				socket.on('disconnect', () => {
 					console.log('user disconnected');
