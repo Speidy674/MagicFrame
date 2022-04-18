@@ -106,27 +106,34 @@ function App() {
 		});
 	};
 
+	function getRandomFile(){
+		var file = fileList[Math.floor(Math.random() * fileList.length)];
+		file = file.replaceAll(" ","%20");
+		return file;
+	}
+
 	this.start = function (callback) {
 		httpServer = new Server(config, function (app, io) {
 			Log.log("Server started ...");
 
 			var i = 0;
-			var minutes = 1;
+			var minutes = 10;
 			var the_interval = minutes * 60 * 1000;
 
 			updatePicInterval = setInterval(function() {
 
-				var file = fileList[Math.floor(Math.random() * fileList.length)];
-				file = file.replaceAll(" ","%20");
+				var file = getRandomFile();
 
 				if (vidFormat.some(v => file.includes(v))) {
 					var test = {type : "vid",file:file};
+					io.sockets.emit("change",JSON.stringify(test));
 				}
 				
 				if (imgFormat.some(v => file.includes(v))) {
 					var test = {type : "img",file:file};
+					io.sockets.emit("change",JSON.stringify(test));
 				}
-				io.sockets.emit("change",JSON.stringify(test))
+
 
 				if(i==0){
 					var test = {url : "https://speidy674.de/img/logo.png",type : "img",file:"empty.png"};
@@ -162,11 +169,21 @@ function App() {
 
 				console.log('Frame connected (ID: '+socket.frameID+'('+socket.id+'))');
 
-				var test = {file : "empty.png",type : "img"};
+				var file = getRandomFile();
+
+				if (vidFormat.some(v => file.includes(v))) {
+					var test = {type : "vid",file:file};
+				}
+
+				if (imgFormat.some(v => file.includes(v))) {
+					var test = {type : "img",file:file};
+				}
+
 				setTimeout(function () {io.sockets.emit("change",JSON.stringify(test))},5000);
 				
 				socket.on('disconnect', () => {
 					console.log('user disconnected');
+					delete frameCons[frameID];
 				});
 			});
 	});
