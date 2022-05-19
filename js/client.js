@@ -5,6 +5,7 @@
  * MIT Licensed.
  */
 const Log = require("logger");
+const { address } = require("../config/config");
 
 Log.log("Starting MagicFrame Client: v" + global.version);
 
@@ -82,7 +83,7 @@ function App() {
       },
       backgroundColor: "#000000",
       autoHideMenuBar: true,
-      fullscreen: false
+      fullscreen: true
 
     })
   }
@@ -90,7 +91,20 @@ function App() {
   app.whenReady().then(() => {
 
     //get infos first
-    url = "http://127.0.0.1:8080/";
+
+    getServerAddress();
+
+    if (config.address == undefined) { config.address = global.config.address; }
+    if (config.port == undefined) { config.port = global.config.port; }
+    if (config.frameid == undefined) { config.frameid = global.config.frameid; }
+
+    console.log(config);
+
+    const prefix = config.tls ? "https://" : "http://";
+
+    url = prefix + config.address + ":" + config.port + "/#"+config.frameid;
+
+    console.log(url);
 
     createWindow()
 

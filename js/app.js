@@ -10,8 +10,14 @@ require("module-alias/register");
 const fs = require("fs");
 const path = require("path");
 const Log = require("logger");
+const { clearInterval } = require("timers");
 const Server = require(`${__dirname}/server`);
 const Utils = require(`${__dirname}/utils`);
+
+const imgFormat = [".jpg",".png",".gif",".jpeg",".webp"];
+const vidFormat = [".mp4"];
+
+const formats = imgFormat.concat(vidFormat);
 
 
 global.version = require(`${__dirname}/../package.json`).version;
@@ -40,6 +46,11 @@ process.on("uncaughtException", function (err) {
  */
 function App() {
 	let httpServer;
+	let updatePicInterval;
+
+	var frameCons = [];
+
+	var fileList = []
 
 	/**
 	 * Loads the config file.
@@ -68,54 +79,139 @@ function App() {
 		}
 	}
 
-	this.start = function (callback) {
+	function getTimeLeft(timeout) {
+		return Math.ceil((timeout._idleStart + timeout._idleTimeout)/1000 - process.uptime());
+	}
+
+	this.loadConfig = function (callback) {
 		loadConfig(function (c) {
 			config = c;
 
 			Log.setLogLevel(config.logLevel);
-
-
-			httpServer = new Server(config, function (app, io) {
-				Log.log("Server started ...");
-
-
-				io.on('connection', (socket) => {
-					console.log('a user connected');
-					socket.on('disconnect', () => {
-						console.log('user disconnected');
-					});
-				});
-
-
-				if (typeof callback === "function") {
-					callback(config);
-				}
-
-			});
+			
+			if (typeof callback === "function") {
+				callback(config);
+			}
 		});
 	};
 
-	this.stop = function () {
-		httpServer.close();
+	this.loadFileList = function (){
+		Log.log("Load file List ...");
+		filelist = [];
+		var tmpfileList = fs.readdirSync(path.resolve(`${global.root_path}/files/`));
+		tmpfileList.forEach(function (file) {
+			if(file != "empty.png"){
+				if (formats.some(v => file.includes(v))) {
+					console.debug(`${file} is supported`);
+					fileList.push(file);
+				}else{				
+					console.debug(`${file} is not supported`);
+				}
+			}
+		});
 	};
 
-	process.on("SIGINT", () => {
-		Log.log("[SIGINT] Received. Shutting down server...");
-		setTimeout(() => {
-			process.exit(0);
-		}, 3000);
-		this.stop();
-		process.exit(0);
-	});
+	function getRandomFile(){
+		var file = fileList[Math.floor(Math.random() * fileList.length)];
+		file = file.replaceAll(" ","%20");
+		return file;
+	}
 
-	process.on("SIGTERM", () => {
-		Log.log("[SIGTERM] Received. Shutting down server...");
-		setTimeout(() => {
-			process.exit(0);
-		}, 3000);
-		this.stop();
-		process.exit(0);
+	function sendFile(file,frameInfo,io){
+		var id = frameInfo.id;					
+		frameInfo.file = file;
+
+		if (vidFormat.some(v => file.includes(v))) {
+			var test = {type : "vid",file:file};
+			io.to(id).emit("change",JSON.stringify(test));
+		}
+		
+		if (imgFormat.some(v => file.includes(v))) {
+			var test = {type : "img",file:file};
+			io.to(id).emit("change",JSON.stringify(test));
+		}
+	}
+
+	this.start = function (callback) {
+		httpServer = new Server(config, function (app, io) {
+			Log.log("Server started ...");
+
+			var minutes = 10;
+			var the_interval = minutes * 60 * 1000;
+
+			updatePicInterval = setInterval(function() {				
+				for(var con in frameCons) {
+					var file = getRandomFile();
+					console.debug(`${con}(${frameCons[con].id})| ${file}`);
+					sendFile(file,frameCons[con],io);
+				}				
+			}, the_interval);			
+
+			io.on('connection', (socket) => {
+				const frameID = socket.handshake.headers.frameid;
+				const width = socket.handshake.headers.width;
+				const height = socket.handshake.headers.height;
+
+				frameCons[frameID] = [];
+
+				frameCons[frameID].id = socket.id;
+				frameCons[frameID].width = width;
+				frameCons[frameID].height = height;
+				socket.frameID = frameID;
+
+				console.log('Frame connected (ID: '+socket.frameID+'('+socket.id+'))');
+
+				var file = getRandomFile();
+
+				setTimeout(function () {
+					sendFile(file,frameCons[frameID],io);
+				},5000);
+				
+				socket.on('disconnect', () => {
+					console.log('Frame disconnected (ID: '+socket.frameID+'('+socket.id+'))');
+					delete frameCons[frameID];
+				});
+			});
+
+			app.get("/stats", function (req, res) {
+				var out = `<b>Frame Infos</b>(Next Change: ${getTimeLeft(updatePicInterval)} Seconds)<br/>`;
+				for(var frameID in frameCons) {
+					var frame = frameCons[frameID];
+					out += `Frame ID:${frameID}<br/>
+					Socket ID: ${frame.id}<br/>
+					Width = ${frame.width}<br/>
+					Height = ${frame.height}<br/>
+					File = ${frame.file}<br/>
+					<br/><br/>`;
+				}
+
+				res.send(out);
+			});
 	});
+};
+
+this.stop = function () {
+	httpServer.close();
+	clearInterval(updatePicInterval);
+};
+
+process.on("SIGINT", () => {
+	Log.log("[SIGINT] Received. Shutting down server...");
+	setTimeout(() => {
+		process.exit(0);
+	}, 3000);
+	this.stop();
+	process.exit(0);
+});
+
+process.on("SIGTERM", () => {
+	Log.log("[SIGTERM] Received. Shutting down server...");
+	setTimeout(() => {
+		process.exit(0);
+	}, 3000);
+	this.stop();
+	process.exit(0);
+});
 }
 
 module.exports = new App();

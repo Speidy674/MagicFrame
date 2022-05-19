@@ -59,14 +59,14 @@ function Server(config, callback) {
 				return next();
 			}
 			Log.log(err.message);
-			res.status(403).send("This device is not allowed to access your frame. <br> Please check your config.js or config.js.sample to change this.");
+			res.status(403).send("This device is not allowed to access your Magic frame. <br> Please check your config.js change this.");
 		});
 	});
 	app.use(helmet({ contentSecurityPolicy: false }));
 
 	app.use("/js", express.static(__dirname));
 
-	const directories = ["/config", "/css", "/fonts"];
+	const directories = ["/config", "/css", "/fonts","/files"];
 	for (const directory of directories) {
 		app.use(directory, express.static(path.resolve(global.root_path + directory)));
 	}
@@ -90,6 +90,11 @@ function Server(config, callback) {
 		html = html.replace("#CONFIG_FILE#", configFile);
 
 		res.send(html);
+	});
+
+	app.get("/data/:file_id", function (req, res) {
+		console.debug(`${req.params.file_id} has been requested`);
+		res.sendFile(path.resolve(`${global.root_path}/files/${req.params.file_id}`));
 	});
 
 	if (typeof callback === "function") {
