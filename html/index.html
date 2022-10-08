@@ -14,13 +14,32 @@
         var socket = io({
             extraHeaders: {
                 "frameid": frameID,
-                "width": window.innerWidth,
-                "height": window.innerHeight
+                "width": window.screen.availWidth,
+                "height": window.screen.availHeight
             }
+        });
+        
+        socket.on("connect", () => {
+            setTimeout(() => {
+                hideLoader();
+            }, 5000);
+        });
+
+        socket.on("connect_error",(err) => {
+            showLoader();
+            document.documentElement.style.setProperty('--error', `"Magic Frame\\A\\A Connection Error"`)
+            document.getElementById("loader").classList.add("error");
+            console.log("connect_error: "+err);
+        });
+
+        socket.on("disconnect",(err) => {
+            showLoader();
+            document.documentElement.style.setProperty('--error', `"Magic Frame\\A\\A Discconected"`)
+            document.getElementById("loader").classList.add("error");
+            console.log("disconnect: "+err);
         });
 
         socket.on("change", (...args) => {
-            hideLoader();
             var json = JSON.parse(args);
             console.log("change to "+json.type+": "+json.file);
 
@@ -31,12 +50,16 @@
             }else{
                 console.error("type "+json.type+" is not supported");
             }
-
         });
 
         function hideLoader(){
             document.body.style.backgroundColor = "black";
             document.getElementById("loader").style.display = "none";
+        }
+
+        function showLoader(){
+            document.body.style.backgroundColor = "#121212";
+            document.getElementById("loader").style.display = "flex";
         }
 
         function copyFrame(){
@@ -145,9 +168,14 @@
         }
 
 
-        console.log("Screen size is " + window.innerWidth + "x" + window.innerHeight);
+        console.log("Screen size is " + window.screen.availWidth + "x" + window.screen.availHeight);
     </script>
     <style>
+
+        :root{
+            --error: "Magic Frame\A\A ";
+        }
+        
         * {
             margin: 0;
             padding: 0;
@@ -202,6 +230,16 @@
             box-shadow: inset 20px 20px 20px #0000008c;
             white-space: pre;
             text-align: center;
+        }
+
+        #loader.error::after{
+            content: var(--error);
+            color: red;
+        }
+
+        #loader.error::before{
+            background-image: conic-gradient(red 20deg,
+                    transparent 120deg);
         }
 
         @keyframes rotate {
