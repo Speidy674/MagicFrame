@@ -147,10 +147,28 @@ function App() {
 				}				
 			}, the_interval);			
 
+			io.use((socket,next) =>{
+				var frameID = socket.handshake.headers.frameid;
+				if (frameID == "")
+					frameID = socket.id;
+					
+
+				if(frameCons[frameID] != undefined){
+					console.log('Frame already connected (ID: '+frameID+'('+socket.id+'))');					
+					const err = new Error("frameId already in use");
+					next(err);
+				}else{
+					next();					
+				}
+			});
+
 			io.on('connection', (socket) => {
-				const frameID = socket.handshake.headers.frameid;
-				const width = socket.handshake.headers.width;
-				const height = socket.handshake.headers.height;
+				var frameID = socket.handshake.headers.frameid;
+				var width = socket.handshake.headers.width;
+				var height = socket.handshake.headers.height;
+
+				if (frameID == "")
+					frameID = socket.id;
 
 				frameCons[frameID] = [];
 
