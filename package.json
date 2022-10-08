@@ -27,12 +27,15 @@
   },
   "homepage": "https://github.com/Speidy674/MagicFrame#readme",
   "dependencies": {
+    "bootstrap": "^5.2.2",
     "colors": "^1.4.0",
     "console-stamp": "^3.0.3",
     "express": "^4.17.1",
     "express-ipfilter": "^1.2.0",
+    "feather-icons": "^4.29.0",
     "feedme": "^2.0.2",
     "helmet": "^4.6.0",
+    "jquery": "^3.6.1",
     "module-alias": "^2.2.2",
     "node-fetch": "^3.2.10",
     "socket.io": "^4.3.1"

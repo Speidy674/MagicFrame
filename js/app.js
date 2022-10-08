@@ -14,7 +14,7 @@ const { clearInterval } = require("timers");
 const Server = require(`${__dirname}/server`);
 const Utils = require(`${__dirname}/utils`);
 
-const imgFormat = [".jpg",".png",".gif",".jpeg",".webp"];
+const imgFormat = [".jpg", ".png", ".gif", ".jpeg", ".webp"];
 const vidFormat = [".mp4"];
 
 const formats = imgFormat.concat(vidFormat);
@@ -80,7 +80,7 @@ function App() {
 	}
 
 	function getTimeLeft(timeout) {
-		return Math.ceil((timeout._idleStart + timeout._idleTimeout)/1000 - process.uptime());
+		return Math.ceil((timeout._idleStart + timeout._idleTimeout) / 1000 - process.uptime());
 	}
 
 	this.loadConfig = function (callback) {
@@ -88,47 +88,47 @@ function App() {
 			config = c;
 
 			Log.setLogLevel(config.logLevel);
-			
+
 			if (typeof callback === "function") {
 				callback(config);
 			}
 		});
 	};
 
-	this.loadFileList = function (){
+	this.loadFileList = function () {
 		Log.log("Load file List ...");
 		filelist = [];
 		var tmpfileList = fs.readdirSync(path.resolve(`${global.root_path}/files/`));
 		tmpfileList.forEach(function (file) {
-			if(file != "empty.png"){
+			if (file != "empty.png") {
 				if (formats.some(v => file.includes(v))) {
 					console.debug(`${file} is supported`);
 					fileList.push(file);
-				}else{				
+				} else {
 					console.debug(`${file} is not supported`);
 				}
 			}
 		});
 	};
 
-	function getRandomFile(){
+	function getRandomFile() {
 		var file = fileList[Math.floor(Math.random() * fileList.length)];
-		file = file.replaceAll(" ","%20");
+		file = file.replaceAll(" ", "%20");
 		return file;
 	}
 
-	function sendFile(file,frameInfo,io){
-		var id = frameInfo.id;					
+	function sendFile(file, frameInfo, io) {
+		var id = frameInfo.id;
 		frameInfo.file = file;
 
 		if (vidFormat.some(v => file.includes(v))) {
-			var test = {type : "vid",file:file};
-			io.to(id).emit("change",JSON.stringify(test));
+			var test = { type: "vid", file: file };
+			io.to(id).emit("change", JSON.stringify(test));
 		}
-		
+
 		if (imgFormat.some(v => file.includes(v))) {
-			var test = {type : "img",file:file};
-			io.to(id).emit("change",JSON.stringify(test));
+			var test = { type: "img", file: file };
+			io.to(id).emit("change", JSON.stringify(test));
 		}
 	}
 
@@ -139,26 +139,26 @@ function App() {
 			var minutes = 10;
 			var the_interval = minutes * 60 * 1000;
 
-			updatePicInterval = setInterval(function() {				
-				for(var con in frameCons) {
+			updatePicInterval = setInterval(function () {
+				for (var con in frameCons) {
 					var file = getRandomFile();
 					console.debug(`${con}(${frameCons[con].id})| ${file}`);
-					sendFile(file,frameCons[con],io);
-				}				
-			}, the_interval);			
+					sendFile(file, frameCons[con], io);
+				}
+			}, the_interval);
 
-			io.use((socket,next) =>{
+			io.use((socket, next) => {
 				var frameID = socket.handshake.headers.frameid;
 				if (frameID == "")
 					frameID = socket.id;
-					
 
-				if(frameCons[frameID] != undefined){
-					console.log('Frame already connected (ID: '+frameID+'('+socket.id+'))');					
+
+				if (frameCons[frameID] != undefined) {
+					console.log('Frame already connected (ID: ' + frameID + '(' + socket.id + '))');
 					const err = new Error("frameId already in use");
 					next(err);
-				}else{
-					next();					
+				} else {
+					next();
 				}
 			});
 
@@ -177,23 +177,23 @@ function App() {
 				frameCons[frameID].height = height;
 				socket.frameID = frameID;
 
-				console.log('Frame connected (ID: '+socket.frameID+'('+socket.id+'))');
+				console.log('Frame connected (ID: ' + socket.frameID + '(' + socket.id + '))');
 
 				var file = getRandomFile();
 
 				setTimeout(function () {
-					sendFile(file,frameCons[frameID],io);
-				},5000);
-				
+					sendFile(file, frameCons[frameID], io);
+				}, 5000);
+
 				socket.on('disconnect', () => {
-					console.log('Frame disconnected (ID: '+socket.frameID+'('+socket.id+'))');
+					console.log('Frame disconnected (ID: ' + socket.frameID + '(' + socket.id + '))');
 					delete frameCons[frameID];
 				});
 			});
 
 			app.get("/stats", function (req, res) {
 				var out = `<b>Frame Infos</b>(Next Change: ${getTimeLeft(updatePicInterval)} Seconds)<br/>`;
-				for(var frameID in frameCons) {
+				for (var frameID in frameCons) {
 					var frame = frameCons[frameID];
 					out += `Frame ID:${frameID}<br/>
 					Socket ID: ${frame.id}<br/>
@@ -205,31 +205,43 @@ function App() {
 
 				res.send(out);
 			});
+
+			app.get("/dashboard", function (req, res) {
+				res.sendFile(path.resolve(`${global.root_path}/html/dashboard/index.html`));
+			});
+
+			app.get("/dashboard/frames", function (req, res) {
+				res.sendFile(path.resolve(`${global.root_path}/html/dashboard/frames.html`));
+			});
+
+			app.get("/dashboard/files", function (req, res) {
+				res.sendFile(path.resolve(`${global.root_path}/html/dashboard/files.html`));
+			});
+		});
+	};
+
+	this.stop = function () {
+		httpServer.close();
+		clearInterval(updatePicInterval);
+	};
+
+	process.on("SIGINT", () => {
+		Log.log("[SIGINT] Received. Shutting down server...");
+		setTimeout(() => {
+			process.exit(0);
+		}, 3000);
+		this.stop();
+		process.exit(0);
 	});
-};
 
-this.stop = function () {
-	httpServer.close();
-	clearInterval(updatePicInterval);
-};
-
-process.on("SIGINT", () => {
-	Log.log("[SIGINT] Received. Shutting down server...");
-	setTimeout(() => {
+	process.on("SIGTERM", () => {
+		Log.log("[SIGTERM] Received. Shutting down server...");
+		setTimeout(() => {
+			process.exit(0);
+		}, 3000);
+		this.stop();
 		process.exit(0);
-	}, 3000);
-	this.stop();
-	process.exit(0);
-});
-
-process.on("SIGTERM", () => {
-	Log.log("[SIGTERM] Received. Shutting down server...");
-	setTimeout(() => {
-		process.exit(0);
-	}, 3000);
-	this.stop();
-	process.exit(0);
-});
+	});
 }
 
 module.exports = new App();

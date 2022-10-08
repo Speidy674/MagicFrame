@@ -15,6 +15,7 @@ const Log = require("logger");
 const Utils = require("./utils.js");
 
 
+
 function Server(config, callback) {
 	const port = process.env.MF_PORT || config.port;
 	const serverSockets = new Set();
@@ -63,10 +64,11 @@ function Server(config, callback) {
 		});
 	});
 	app.use(helmet({ contentSecurityPolicy: false }));
+	app.use(express.json());
 
 	app.use("/js", express.static(__dirname));
 
-	const directories = ["/config", "/css", "/fonts","/files"];
+	const directories = ["/config", "/css", "/fonts", "/files"];
 	for (const directory of directories) {
 		app.use(directory, express.static(path.resolve(global.root_path + directory)));
 	}
@@ -96,6 +98,23 @@ function Server(config, callback) {
 		console.debug(`${req.params.file_id} has been requested`);
 		res.sendFile(path.resolve(`${global.root_path}/files/${req.params.file_id}`));
 	});
+
+	app.use(express.static(path.join(global.root_path, "/public")));
+
+	app.use(
+		"/jquery",
+		express.static(path.join(global.root_path, "/node_modules/jquery/dist"))
+	);
+
+	app.use(
+		"/bootstrap",
+		express.static(path.join(global.root_path, "/node_modules/bootstrap/dist"))
+	);
+
+	app.use(
+		"/feather-icons",
+		express.static(path.join(global.root_path, "/node_modules/feather-icons/dist"))
+	);
 
 	if (typeof callback === "function") {
 		callback(app, io);
