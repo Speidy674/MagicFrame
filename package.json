@@ -34,7 +34,7 @@
     "feedme": "^2.0.2",
     "helmet": "^4.6.0",
     "module-alias": "^2.2.2",
-    "node-fetch": "^3.0.0",
+    "node-fetch": "^3.2.10",
     "socket.io": "^4.3.1"
   },
   "devDependencies": {
