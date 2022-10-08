@@ -38,7 +38,7 @@
     "socket.io": "^4.3.1"
   },
   "devDependencies": {
-    "electron": "^15.3.4",
+    "electron": "^15.5.5",
     "husky": "^7.0.4",
     "prettier": "2.4.1",
     "stylelint": "^14.0.1",
