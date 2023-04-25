@@ -41,9 +41,9 @@
     "electron": "^18.3.7",
     "husky": "^7.0.4",
     "prettier": "2.4.1",
-    "stylelint": "^14.0.1",
+    "stylelint": "^15.6.0",
     "stylelint-config-prettier": "^9.0.3",
-    "stylelint-config-standard": "^23.0.0",
+    "stylelint-config-standard": "^33.0.0",
     "stylelint-prettier": "^1.2.0"
   },
   "_moduleAliases": {
