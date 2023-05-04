@@ -35,7 +35,7 @@
     "helmet": "^4.6.0",
     "module-alias": "^2.2.2",
     "node-fetch": "^3.2.10",
-    "socket.io": "^4.3.1"
+    "socket.io": "^4.6.1"
   },
   "devDependencies": {
     "electron": "^18.3.7",
