@@ -1,10 +1,26 @@
+const chalk = require("chalk");
+
+const map = {
+	log: 'cyan',
+	error: 'red',
+	info: 'green',
+	warn: 'yellow',
+	debug: 'magenta'
+};
+
 (function (root, factory) {
 	if (typeof exports === "object") {
 		if (process.env.JEST_WORKER_ID === undefined) {
 			// add timestamps in front of log messages
 			require("console-stamp")(console, {
 				pattern: "yyyy-mm-dd HH:MM:ss.l",
-				include: ["debug", "log", "info", "warn", "error"]
+				format: '(->).yellow :date().blue :label(7)',
+				include: ["debug", "log", "info", "warn", "error"],
+				tokens: {
+					label: (obj) => {
+						return chalk`{${map[obj.method] || 'reset'} ${obj.defaultTokens.label(obj)}}`;
+					}
+				}
 			});
 		}
 		// Node, CommonJS-like
@@ -41,6 +57,10 @@
 
 		logLevel.setLogLevel = function (newLevel) {
 			if (newLevel) {
+
+				newLevel.push("setLogLevel".toLocaleUpperCase());
+				newLevel.push("LogLevel".toLocaleUpperCase());
+
 				Object.keys(logLevel).forEach(function (key, index) {
 					if (!newLevel.includes(key.toLocaleUpperCase())) {
 						logLevel[key] = function () { };
@@ -65,6 +85,29 @@
 
 		logLevel.setLogLevel = function () { };
 	}
+
+	logLevel.LogLevel = function (level, message) {
+		switch (level) {
+			case 0:
+			case 1:
+				console.error(message);
+				break;
+			case 2:
+				console.warn(message);
+				break;
+			case 3:
+				console.info(message);
+				break;
+			case 4:
+				console.debug(message);
+				break;
+			case 7:
+				console.trace(message);
+				break;
+			default:
+				break;
+		}
+	};
 
 	return logLevel;
 });

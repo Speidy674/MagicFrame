@@ -1,4 +1,4 @@
-/* Magic Frame
+/* Twitch Overlay
  * Server
  *
  * By Speidy674 https://speidy674.de
@@ -6,18 +6,15 @@
  */
 const express = require("express");
 const app = require("express")();
-const path = require("path");
 const ipfilter = require("express-ipfilter").IpFilter;
-const fs = require("fs");
+const path = require("path");
+var cors = require('cors');
 const helmet = require("helmet");
-
-const Log = require("logger");
-const Utils = require("./utils.js");
-
+const utils = require("utils");
 
 
 function Server(config, callback) {
-	const port = process.env.MF_PORT || config.port;
+	const port = config.port;
 	const serverSockets = new Set();
 
 	let server = null;
@@ -46,12 +43,12 @@ function Server(config, callback) {
 		});
 	});
 
-	Log.log(`Starting server on port ${port} ... `);
+	Log.log("[Server]",`Starting server on port ${port} ... `);
 
 	server.listen(port, config.address || "localhost");
 
 	if (config.ipWhitelist instanceof Array && config.ipWhitelist.length === 0) {
-		Log.warn(Utils.colors.warn("You're using a full whitelist configuration to allow for all IPs"));
+		Log.warn(utils.colors.warn("You're using a full whitelist configuration to allow for all IPs"));
 	}
 
 	app.use(function (req, res, next) {
@@ -60,64 +57,49 @@ function Server(config, callback) {
 				return next();
 			}
 			Log.log(err.message);
-			res.status(403).send("This device is not allowed to access your Magic frame. <br> Please check your config.js change this.");
+			res.status(403).send("This device is not allowed to access your MagicFrame. <br> Please check your config.js change this.");
 		});
 	});
-	app.use(helmet({ contentSecurityPolicy: false }));
-	app.use(express.json());
+
+	app.use(helmet(config.httpHeaders));
+
+	app.use(function (req, res, next) {
+		res.header("Access-Control-Allow-Origin", "*");
+		return next();
+	});
 
 	app.use("/js", express.static(__dirname));
 
-	const directories = ["/config", "/css", "/fonts", "/files"];
-	for (const directory of directories) {
-		app.use(directory, express.static(path.resolve(global.root_path + directory)));
+	const dirs = ["/css", "/fonts", "/files", "/imgs", "/vids", "/sounds"];
+	for (const dir of dirs) {
+		app.use(dir, express.static(path.resolve(global.root_path + "/html" + dir)));
 	}
+
+	var debugs = express.Router();
+
+	debugs.get("/routes", function (req, res) {
+		const stacks = app._router.stack
+		const availableRoutes = stacks.reduce(
+			(acc, val) => acc.concat(
+				val.route ? [val.route.path] : val.name === "router" ? val.handle.stack.filter(
+					x => x.route
+				).map(
+					x => val.regexp.toString().match(/\/[a-z]+/)[0] + (x.route.path === '/' ? '' : x.route.path)
+				) : []
+			), []
+		).sort();
+
+		res.send(availableRoutes);
+	});
 
 	app.get("/version", function (req, res) {
 		res.send(global.version);
 	});
 
-	app.get("/config", function (req, res) {
-		res.send(config);
-	});
-
-	app.get("/", function (req, res) {
-		let html = fs.readFileSync(path.resolve(`${global.root_path}/html/index.html`), { encoding: "utf8" });
-		html = html.replace("#VERSION#", global.version);
-
-		let configFile = "config/config.js";
-		if (typeof global.configuration_file !== "undefined") {
-			configFile = global.configuration_file;
-		}
-		html = html.replace("#CONFIG_FILE#", configFile);
-
-		res.send(html);
-	});
-
-	app.get("/data/:file_id", function (req, res) {
-		console.debug(`${req.params.file_id} has been requested`);
-		res.sendFile(path.resolve(`${global.root_path}/files/${req.params.file_id}`));
-	});
-
-	app.use(express.static(path.join(global.root_path, "/public")));
-
-	app.use(
-		"/jquery",
-		express.static(path.join(global.root_path, "/node_modules/jquery/dist"))
-	);
-
-	app.use(
-		"/bootstrap",
-		express.static(path.join(global.root_path, "/node_modules/bootstrap/dist"))
-	);
-
-	app.use(
-		"/feather-icons",
-		express.static(path.join(global.root_path, "/node_modules/feather-icons/dist"))
-	);
+	app.use("/debugs", debugs);;
 
 	if (typeof callback === "function") {
-		callback(app, io);
+		callback(app, io, server);
 	}
 
 	this.close = function () {

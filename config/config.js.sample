@@ -8,7 +8,7 @@ let config = {
 	port: 8080,
 
 	//serveronly stuff
-	ipWhitelist: [],
+	ipWhitelist: ["127.0.0.1", "::ffff:127.0.0.1", "::1"],
 	
 	useHttps: false, 		// Support HTTPS or not, default "false" will use HTTP
 	httpsPrivateKey: __dirname+"/../CA/key.pem", 	// HTTPS private key path, only require when useHttps is true
