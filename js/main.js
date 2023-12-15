@@ -10,16 +10,6 @@ const EventEmitter2 = require('eventemitter2');
 
 global.eventSub = new EventEmitter2({ wildcard: true });
 
-/*
-let widgets = {
-	chat: require("./widget/chat.js")
-};
-
-let apps = {
-	history: require("./apps/history.js")
-};
-*/
-
 async function main() {
 
 	let config = process.env.config ? JSON.parse(process.env.config) : {};
@@ -33,7 +23,7 @@ async function main() {
 	});
 
 	cron.schedule(config.intervalFrameChange, () => {
-		Log.log("Change Frame File")
+		Log.log("Change Frame Files")
 		for(let [id, socket] of core.io.of("/").sockets) {
 			if(socket.frame.id){
 				sendFile(fileList.getRandomFile(), id);
