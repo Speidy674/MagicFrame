@@ -29,7 +29,7 @@
   "dependencies": {
     "colors": "^1.4.0",
     "console-stamp": "^3.0.3",
-    "express": "^4.17.1",
+    "express": "^4.19.2",
     "express-ipfilter": "^1.2.0",
     "feedme": "^2.0.2",
     "helmet": "^4.6.0",
