@@ -24,8 +24,8 @@ async function main() {
 
 	cron.schedule(config.intervalFrameChange, () => {
 		Log.log("Change Frame Files")
-		for(let [id, socket] of core.io.of("/").sockets) {
-			if(socket.frame.id){
+		for (let [id, socket] of core.io.of("/").sockets) {
+			if (socket.frame.id) {
 				sendFile(fileList.getRandomFile(), id);
 			}
 		}
@@ -38,6 +38,7 @@ async function main() {
 		const dashboard = express.Router();
 		const frame = express.Router();
 		const data = express.Router();
+		const api = express.Router();
 
 		_app.get("/", function (req, res) {
 			res.redirect("/frame/")
@@ -49,21 +50,21 @@ async function main() {
 
 		dashboard.get("/", function (req, res) {
 			let html = fs.readFileSync(path.resolve(`${global.root_path}/html/dashboard/index.html`), { encoding: "utf8" });
-			html = html.replace("#VERSION#", global.version);
+			html = html.replace(/#VERSION#/gi, global.version);
 
 			res.send(html);
 		});
 
 		dashboard.get("*", function (req, res) {
 			let html = fs.readFileSync(path.resolve(`${global.root_path}/html/dashboard/assets/404.html`), { encoding: "utf8" });
-			html = html.replace("#VERSION#", global.version);
+			html = html.replace(/#VERSION#/gi, global.version);
 
 			res.status(404).send(html);
 		});
 
 		frame.get("/", function (req, res) {
 			let html = fs.readFileSync(path.resolve(`${global.root_path}/html/frame.html`), { encoding: "utf8" });
-			html = html.replace("#VERSION#", global.version);
+			html = html.replace(/#VERSION#/gi, global.version);
 
 			res.send(html);
 		});
@@ -73,27 +74,53 @@ async function main() {
 			res.sendFile(path.resolve(`${global.root_path}/files/${req.params.file_id}`));
 		});
 
+		api.get("/frames", function (req, res) {
+			const frames = []
+			for (let [id, socket] of core.io.of("/").sockets) {
+				if (socket.frame.id) {
+					let frame = {
+						socketId: id,
+						frame: socket.frame
+					}
+					frames.push(frame)
+				}
+			}
+
+			res.status(200).json({frames: frames})
+		})
+
+		api.get("*", function (req, res) {
+			res.type
+			res.sendStatus(404);
+		});
+
 
 		_app.use("/dashboard", dashboard);
 		_app.use("/frame", frame);
 		_app.use("/data", data);
+		_app.use("/api", api);
 	});
 
 	core.io.on('connection', (socket) => {
 		socket.frame = {
-			id: socket.handshake.headers.frameid,
+			init: false,
+			id: "",
 			width: socket.handshake.headers.width,
 			height: socket.handshake.headers.height
 		};
 
-		Log.debug("[Socket]", `Frame ${socket.frame.id} connected`)
+		Log.debug("[Socket]", `Frame connected`)
 
 		socket.onAny((eventName, ...args) => {
 			console.debug("[Socket]", "[" + eventName + "]", args)
 		});
 
 		socket.on('initFrame', (frameId) => {
-			sendFile(fileList.getRandomFile(), socket.id);
+			socket.frame.id = frameId;
+			if (socket.frame.init === false) {
+				sendFile(fileList.getRandomFile(), socket.id);
+				socket.frame.init = true;
+			}
 		});
 	});
 
@@ -122,8 +149,8 @@ function sendFile(file, socketId) {
 
 	var msg = { type: "img", file: file };
 	//if (vidFormat.some(v => file.includes(v)))
-	if(fileList.isVid(file)) msg = { type: "vid", file: file };
-	
+	if (fileList.isVid(file)) msg = { type: "vid", file: file };
+
 	core.io.to(socketId).emit("change", JSON.stringify(msg));
 }
 
