@@ -7,6 +7,7 @@ const fs = require("fs");
 const express = require('express');
 const cron = require('node-cron');
 const EventEmitter2 = require('eventemitter2');
+const filelist = require("./utils/filelist.js");
 
 global.eventSub = new EventEmitter2({ wildcard: true });
 
@@ -26,10 +27,29 @@ async function main() {
 		Log.log("Change Frame Files")
 		for (let [id, socket] of core.io.of("/").sockets) {
 			if (socket.frame.id) {
-				sendFile(fileList.getRandomFile(), id);
+				if (socket.frame.testing === undefined) {
+					sendFile(fileList.getRandomFile(), id);
+				}
 			}
 		}
 	});
+
+	cron.schedule("*/10 * * * * *", () => {
+		for (let [id, socket] of core.io.of("/").sockets) {
+			if (socket.frame.id) {
+				if (socket.frame.testing !== undefined) {
+					let max = filelist.getFileCount();
+					socket.frame.testing++;
+					if (socket.frame.testing >= max) {
+						delete socket.frame.testing;
+						sendFile(fileList.getRandomFile(), id);
+					} else {
+						sendFile(fileList.getFile(socket.frame.testing), id, true);
+					}
+				}
+			}
+		}
+	})
 
 	fileList.loadFileList();
 
@@ -86,7 +106,13 @@ async function main() {
 				}
 			}
 
-			res.status(200).json({frames: frames})
+			res.status(200).json({ frames: frames })
+		})
+
+		api.get("/file/:id", function (req, res) {
+			let file = filelist.getFile(req.params.id);
+			if (file === undefined) file = {}
+			res.status(200).json(file);
 		})
 
 		api.get("*", function (req, res) {
@@ -117,11 +143,17 @@ async function main() {
 
 		socket.on('initFrame', (frameId) => {
 			socket.frame.id = frameId;
+			socket.frame.file = "";
 			if (socket.frame.init === false) {
 				sendFile(fileList.getRandomFile(), socket.id);
 				socket.frame.init = true;
 			}
 		});
+
+		socket.on('files.testing', () => {
+			socket.frame.testing = 0;
+			sendFile(fileList.getFile(0), socket.id, true);
+		})
 	});
 
 
@@ -145,12 +177,12 @@ async function main() {
 
 main();
 
-function sendFile(file, socketId) {
+function sendFile(file, socketId, testing = false) {
 
-	var msg = { type: "img", file: file };
-	//if (vidFormat.some(v => file.includes(v)))
-	if (fileList.isVid(file)) msg = { type: "vid", file: file };
+	var msg = { type: "img", file: file, testing };
+	if (fileList.isVid(file)) msg = { type: "vid", file: file, testing };
 
+	core.io.of("/").sockets.get(socketId).frame.file = file;
 	core.io.to(socketId).emit("change", JSON.stringify(msg));
 }
 

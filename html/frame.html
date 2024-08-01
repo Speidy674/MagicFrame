@@ -85,27 +85,37 @@
         socket.on("connect_error", (err) => {
             resetFrame();
             showError('red', "'Magic Frame\\A\\A Connection Error'")
-            console.log("connect_error: " + err);
+            console.log("[Socket]", `[${new Date().toLocaleString()}]`, "connect_error: " + err);
         });
 
         socket.on("disconnect", (err) => {
             resetFrame();
             showError('red', "'Magic Frame\\A\\A Disconnected'")
-            console.log("disconnect: " + err);
+            console.log("[Socket]", `[${new Date().toLocaleString()}]`, "disconnect: " + err);
         });
 
         socket.io.on("reconnect", () => {
-            setTimeout(init, 500);
+            location.reload()
         });
 
         socket.on("change", (...args) => {
             var json = JSON.parse(args);
-            console.log("change to " + json.type + ": " + baseUrl + json.file);
+            console.log("[Frame]", `[${new Date().toLocaleString()}]`, `change to ${json.type}: [${json.file.id}] ${baseUrl}${json.file.src}`);
+
+            var testInfos = document.getElementById("testInfos");
+            document.querySelector("#testInfos .id").textContent = json.file.id;
+            document.querySelector("#testInfos .name").textContent = json.file.name;
+            document.querySelector("#testInfos .path").textContent = json.file.src;
+
+            if (json.testing)
+                testInfos.classList.remove("d-none")
+            else
+                testInfos.classList.add("d-none")
 
             switch (json.type) {
-                case "img": loadPic(baseUrl + json.file + ""); break;
-                case "vid": loadVid(baseUrl + json.file + ""); break;
-                default: console.error("type " + json.type + " is not supported"); break;
+                case "img": loadPic(baseUrl + json.file.src + ""); break;
+                case "vid": loadVid(baseUrl + json.file.src + ""); break;
+                default: console.error("[Frame]", `[${new Date().toLocaleString()}]`, "type " + json.type + " is not supported"); break;
             }
         });
 
@@ -185,6 +195,20 @@
 
         .old {
             z-index: 2;
+        }
+
+        #testInfos {
+            width: 95%;
+            height: 30px;
+            z-index: 100;
+            background-color: #000000;
+            justify-content: space-around;
+            align-items: center;
+            display: flex;
+            padding: 5px 10px;
+            box-shadow: 0px 0px 6px 1px #000000;
+            top: 10px;
+            position: absolute;
         }
     </style>
 </head>
@@ -298,6 +322,12 @@
                 <button type="submit" class="btn btn-primary">Submit</button>
             </form>
         </div>
+    </div>
+
+    <div id="testInfos" class="d-none">
+        <span class="id"></span>
+        <span class="name"></span>
+        <span class="path"></span>
     </div>
 
 </body>

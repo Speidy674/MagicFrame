@@ -6,35 +6,59 @@ const vidFormat = [".mp4"];
 
 const formats = imgFormat.concat(vidFormat);
 
-
 function FileList() {
 
-	var fileList = [];
+	var fileInfos = [];
+	var fileListNames = [];
 
 	this.loadFileList = async function () {
 		Log.log("[FileList]", "Load files ...");
-		filelist = [];
 		fs.readdir(path.resolve(`${global.root_path}/files/`), { recursive: true }, (err, tmpfileList) => {
 			tmpfileList.forEach(function (file) {
 				if (formats.some(v => file.includes(v))) {
-					console.debug(`${file} is supported`);
-					fileList.push(file);
+					console.debug("[FileList]",`${file} is supported`);
+					const parts = file.split(/[\/\\]/);
+					const fileName = parts.pop();
+
+					if(!fileListNames.includes(fileName))
+					{
+						
+						let id = fileListNames.push(fileName) - 1;
+						let fileInfo = {
+							src: file,
+							folder: parts,
+							name: fileName,
+							id: id,
+						}
+						fileInfos.push(fileInfo);
+						
+					}
 				} else {
-					console.debug(`${file} is not supported`);
+					console.debug("[FileList]",`${file} is not supported`);
 				}
 			});
 		});
+
+		console.log(fileInfos.length, fileListNames.length);
 	};
 
 	this.getRandomFile = function () {
-		var file = fileList[Math.floor(Math.random() * fileList.length)];
-		file = file.replaceAll(" ", "%20");
-		return file;
+		var fileInfo = fileInfos[Math.floor(Math.random() * fileListNames.length)];
+		fileInfo.src = fileInfo.src.replaceAll(" ", "%20");
+		return fileInfo;
 	}
 
-	this.isVid = function (file) {
-		if (vidFormat.some(v => { return path.extname(file) == v })) return true;
+	this.isVid = (fileInfo) => {
+		if (vidFormat.some(v => { return path.extname(fileInfo.name) == v })) return true;
 		return false;
+	}
+
+	this.getFile = (id) => {
+		return fileInfos[id];
+	}
+
+	this.getFileCount = () => {
+		return fileInfos.length;
 	}
 }
 
