@@ -94,6 +94,26 @@ async function main() {
 			res.sendFile(path.resolve(`${global.root_path}/files/${req.params.file_id}`));
 		});
 
+		api.get("/files", (req, res) => {
+			let { page = 1, limit = 25 } = req.query;
+
+			if( page <= 0) page = 1;
+
+			const files = filelist.getFiles();
+			const totalFiles = filelist.getFileCount();
+			const totalPages = Math.ceil(totalFiles / parseInt(limit))
+			const startIndex = ((page * limit) - limit);
+			const endIndex = (page * limit)
+
+			const pageResult = {
+				total: totalFiles,
+				pages: totalPages,
+				files: files.slice(startIndex,endIndex)
+			}
+
+			res.status(200).json(pageResult);
+		})
+
 		api.get("/frames", function (req, res) {
 			const frames = []
 			for (let [id, socket] of core.io.of("/").sockets) {
@@ -107,6 +127,11 @@ async function main() {
 			}
 
 			res.status(200).json({ frames: frames })
+		})
+
+		api.get("/file/random", function (req, res) {
+			let file = filelist.getRandomFile();
+			res.status(200).json(file);
 		})
 
 		api.get("/file/:id", function (req, res) {
