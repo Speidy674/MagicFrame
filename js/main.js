@@ -1,15 +1,15 @@
 require("module-alias/register");
 global.Log = require("logger");
 global.core = require("./coreApp.js");
-global.fileList = require("filelist");
 const path = require("path");
 const fs = require("fs");
 const express = require('express');
 const cron = require('node-cron');
 const EventEmitter2 = require('eventemitter2');
-const filelist = require("./utils/filelist.js");
+const FileList = require("filelist");
 
 global.eventSub = new EventEmitter2({ wildcard: true });
+global.fileList = new FileList();
 
 async function main() {
 
@@ -38,7 +38,7 @@ async function main() {
 		for (let [id, socket] of core.io.of("/").sockets) {
 			if (socket.frame.id) {
 				if (socket.frame.testing !== undefined) {
-					let max = filelist.getFileCount();
+					let max = fileList.getFileCount();
 					socket.frame.testing++;
 					if (socket.frame.testing >= max) {
 						delete socket.frame.testing;
@@ -99,8 +99,8 @@ async function main() {
 
 			if( page <= 0) page = 1;
 
-			const files = filelist.getFiles();
-			const totalFiles = filelist.getFileCount();
+			const files = fileList.getFiles();
+			const totalFiles = fileList.getFileCount();
 			const totalPages = Math.ceil(totalFiles / parseInt(limit))
 			const startIndex = ((page * limit) - limit);
 			const endIndex = (page * limit)
@@ -129,19 +129,39 @@ async function main() {
 			res.status(200).json({ frames: frames })
 		})
 
+		api.get("/frame/:id", function (req, res) {
+			for (let [id, socket] of core.io.of("/").sockets) {
+				if (socket.frame.id && socket.frame.id == req.params.id) {
+					let frame = {
+						socketId: id,
+						frame: socket.frame
+					}
+					res.status(200).json(frame)
+					res.end();
+				}
+			}
+			
+			res.status(200).json({})
+			res.end();
+		})
+
 		api.get("/file/random", function (req, res) {
-			let file = filelist.getRandomFile();
+			let file = fileList.getRandomFile();
 			res.status(200).json(file);
 		})
 
 		api.get("/file/:id", function (req, res) {
-			let file = filelist.getFile(req.params.id);
+			let file = fileList.getFile(req.params.id);
 			if (file === undefined) file = {}
 			res.status(200).json(file);
 		})
 
+		api.get("/files/update", (req,res) => {
+			fileList.loadFileList();
+			res.sendStatus(200);
+		})
+
 		api.get("*", function (req, res) {
-			res.type
 			res.sendStatus(404);
 		});
 
@@ -167,7 +187,7 @@ async function main() {
 		});
 
 		socket.on('initFrame', (frameId) => {
-			socket.frame.id = frameId;
+			socket.frame.id = frameId.toLowerCase();
 			socket.frame.file = "";
 			if (socket.frame.init === false) {
 				sendFile(fileList.getRandomFile(), socket.id);
@@ -176,8 +196,7 @@ async function main() {
 		});
 
 		socket.on('files.testing', () => {
-			socket.frame.testing = 0;
-			sendFile(fileList.getFile(0), socket.id, true);
+			socket.frame.testing = -1;
 		})
 	});
 

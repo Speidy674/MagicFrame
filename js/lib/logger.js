@@ -1,4 +1,4 @@
-const chalk = require("chalk");
+const colors = require("colors/safe");
 
 const map = {
 	log: 'cyan',
@@ -18,7 +18,7 @@ const map = {
 				include: ["debug", "log", "info", "warn", "error"],
 				tokens: {
 					label: (obj) => {
-						return chalk`{${map[obj.method] || 'reset'} ${obj.defaultTokens.label(obj)}}`;
+						return colors[map[obj.method] || 'reset'](obj.defaultTokens.label(obj));
 					}
 				}
 			});

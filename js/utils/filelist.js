@@ -29,7 +29,7 @@ function FileList() {
 							name: fileName,
 							id: id,
 						}
-						fileInfos.push(fileInfo);
+						fileInfos[id] = (fileInfo);
 
 					}
 				} else {
@@ -37,11 +37,10 @@ function FileList() {
 				}
 			});
 		});
-
-		for (const fileInfo of fileInfos) {
-			if(!fs.existsSync(fileInfo.src)){
-				console.log(fileInfo.src + " is gone");
-			}
+		for (const id of fileListNames.keys()) {
+			const name = fileListNames[id]
+			const fileInfo = fileInfos[id]
+			let exists = fs.existsSync(`${global.root_path}/files/${fileInfo.src}`);
 		}
 
 		console.log(fileInfos.length, fileListNames.length);
@@ -49,7 +48,6 @@ function FileList() {
 
 	this.getRandomFile = function () {
 		var fileInfo = fileInfos[Math.floor(Math.random() * fileListNames.length)];
-		fileInfo.src = fileInfo.src.replaceAll(" ", "%20");
 		return fileInfo;
 	}
 
@@ -71,4 +69,4 @@ function FileList() {
 	}
 }
 
-module.exports = new FileList();
+module.exports = FileList;
