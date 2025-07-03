@@ -1,4 +1,4 @@
-/* Magic Frame
+/* Twitch Overlay
  * Server
  *
  * By Speidy674 https://speidy674.de
@@ -7,16 +7,16 @@
 const express = require("express");
 const app = require("express")();
 const path = require("path");
-const ipfilter = require("express-ipfilter").IpFilter;
-const fs = require("fs");
+const cors = require('cors')
 const helmet = require("helmet");
+const cookieParser = require('cookie-parser');
+const session = require('express-session')
+const crypto = require("crypto");
+//const connectSessionSequelize = require('connect-session-sequelize')(session.Store);
 
-const Log = require("logger");
-const Utils = require("./utils.js");
 
-
-function Server(config, callback) {
-	const port = process.env.MF_PORT || config.port;
+function Server(config, db, callback) {
+	const port = config.port;
 	const serverSockets = new Set();
 
 	let server = null;
@@ -45,60 +45,110 @@ function Server(config, callback) {
 		});
 	});
 
-	Log.log(`Starting server on port ${port} ... `);
+	Log.log("[Server]", `Starting server on port ${port} ... `);
 
 	server.listen(port, config.address || "localhost");
 
-	if (config.ipWhitelist instanceof Array && config.ipWhitelist.length === 0) {
-		Log.warn(Utils.colors.warn("You're using a full whitelist configuration to allow for all IPs"));
-	}
+	app.set('trust proxy', 1);
 
-	app.use(function (req, res, next) {
-		ipfilter(config.ipWhitelist, { mode: config.ipWhitelist.length === 0 ? "deny" : "allow", log: false })(req, res, function (err) {
-			if (err === undefined) {
-				return next();
-			}
-			Log.log(err.message);
-			res.status(403).send("This device is not allowed to access your Magic frame. <br> Please check your config.js change this.");
-		});
+	app.use(cookieParser(config.cookieParserKey));
+
+	//const sessionStore = new connectSessionSequelize({
+	//	db: db.getInstance(),
+	//	table: 'web_session',
+	//	extendDefaultFields: function (defaults,session) {
+	//		return {
+	//			data: defaults.data,
+	//			expires: defaults.expires,
+	//			user_id: session.userId ?? "",
+	//		}
+	//	}
+	//});
+
+	const sessionMiddleware = session({
+		genid: () => crypto.randomUUID(),
+		name: 'sid',
+		secret: config.cookieParserKey,
+	//	store: sessionStore,
+		resave: false,
+		saveUninitialized: false,
+		cookie: {
+			httpOnly: true,
+			secure: true,
+			maxAge: 1000 * 60 * 60 * 24
+		}
+	})
+
+	app.use(sessionMiddleware)
+
+	io.engine.use(sessionMiddleware)
+
+	//sessionStore.sync();
+
+	app.use(helmet(config.httpHeaders));
+
+	app.use(function defaultHeaders(req, res, next) {
+		res.header("Access-Control-Allow-Origin", "*");
+		return next();
 	});
-	app.use(helmet({ contentSecurityPolicy: false }));
 
 	app.use("/js", express.static(__dirname));
 
-	const directories = ["/config", "/css", "/fonts","/files"];
-	for (const directory of directories) {
-		app.use(directory, express.static(path.resolve(global.root_path + directory)));
+	const dirs = ["/css", "/fonts", "/files", "/imgs", "/vids", "/sounds"];
+	for (const dir of dirs) {
+		app.use(dir, express.static(path.resolve(global.root_path + "/html" + dir)));
 	}
+
+	var debugs = express.Router();
+
+	debugs.get("/routes", function (req, res) {
+		const stacks = app.stack || (app.router && app.router.stack)
+
+		let endpoints = []
+
+		const getRoute = (stacks, path = "") => {
+			stacks.forEach((layer) => {
+				if (layer.name === 'handle') {
+					let object = {
+						method: Object.entries(layer.route.methods),
+						path: Array.isArray(layer.route.path) ? layer.route.path.map((routePath) => path + routePath) : path + layer.route.path
+					}
+					endpoints.push(object)
+				} else if (layer.name === 'router') {
+					getRoute(layer.handle.stack, path + (layer.path ?? ""))
+				} else if (layer.name === 'serveStatic') {
+
+				}
+			})
+		}
+
+		if (stacks) {
+			getRoute(stacks)
+		}
+
+		res.send(endpoints);
+	});
+
+	debugs.get("/session", function (req, res) {
+		res.json(req.session);
+	})
+
+	debugs.get("/cookies", function (req, res) {
+		res.json(req.signedCookies);
+	})
+
+	debugs.get("/db/:table", async function (req,res) {
+		res.json(await db.getModel(req.params.table).findAll())
+	})
 
 	app.get("/version", function (req, res) {
 		res.send(global.version);
 	});
 
-	app.get("/config", function (req, res) {
-		res.send(config);
-	});
-
-	app.get("/", function (req, res) {
-		let html = fs.readFileSync(path.resolve(`${global.root_path}/html/index.html`), { encoding: "utf8" });
-		html = html.replace("#VERSION#", global.version);
-
-		let configFile = "config/config.js";
-		if (typeof global.configuration_file !== "undefined") {
-			configFile = global.configuration_file;
-		}
-		html = html.replace("#CONFIG_FILE#", configFile);
-
-		res.send(html);
-	});
-
-	app.get("/data/:file_id", function (req, res) {
-		console.debug(`${req.params.file_id} has been requested`);
-		res.sendFile(path.resolve(`${global.root_path}/files/${req.params.file_id}`));
-	});
+	app.use("/debugs", debugs);
 
 	if (typeof callback === "function") {
-		callback(app, io);
+		callback(app, io, server);
 	}
 
 	this.close = function () {
