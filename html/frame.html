@@ -1,297 +1,316 @@
 <!DOCTYPE html>
 <html data-bs-theme="dark">
 
-<head>
-    <meta charset="UTF-8">
-    <title>MagicFrame - Frame</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
-        integrity="sha512-c42qTSw/wPZ3/5LBzD+Bw5f7bSF2oxou6wEb+I/lqeaKV5FDIfMvvRp772y4jcJLKuGUOpbJMdg/BTl50fJYAw=="
-        crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="/css/frame.css" />
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.0/dist/jquery.min.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
-        integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
-        crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"
-        integrity="sha384-fbbOQedDUMZZ5KreZpsbe1LCZPVmfTnH7ois6mU1QK+m14rQ1l2bGBq41eYeM/fS"
-        crossorigin="anonymous"></script>
-    <script src="/js/lib/mustache.min.js"></script>
-    <script>
-        let frameId = window.location.hash.substr(1);
-        let oldType = "";
-        let baseUrl = "/data/";
+    <head>
+        <meta charset="UTF-8">
+        <title>MagicFrame - Frame</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
+            integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+            integrity="sha512-c42qTSw/wPZ3/5LBzD+Bw5f7bSF2oxou6wEb+I/lqeaKV5FDIfMvvRp772y4jcJLKuGUOpbJMdg/BTl50fJYAw=="
+            crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <link rel="stylesheet" href="/css/frame.css" />
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.0/dist/jquery.min.js" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+            integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+            crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"
+            integrity="sha384-fbbOQedDUMZZ5KreZpsbe1LCZPVmfTnH7ois6mU1QK+m14rQ1l2bGBq41eYeM/fS"
+            crossorigin="anonymous"></script>
+        <script src="/mustache.min.js"></script>
+        <script>
+            let frameId = window.location.hash.substr(1);
+            let oldType = "";
+            let baseUrl = "/data/";
 
-        let socket = io({
-            extraHeaders: {
-                width: window.screen.availWidth,
-                height: window.screen.availHeight
-            }
-        })
-
-        $(document).ready(function () {
-
-            document.getElementById("frameSetting").addEventListener("submit", (e) => {
-                e.preventDefault();
-                frameId = document.getElementById('frameId').value;
-                window.location.hash = frameId.toLowerCase();
-                connect();
+            let socket = io({
+                extraHeaders: {
+                    type: "frame",
+                    screen: {
+                        width: window.screen.availWidth,
+                        height: window.screen.availHeight
+                    },
+                    width: window.innerWidth,
+                    height: window.innerHeight
+                }
             })
 
-            setTimeout(init, 1000);
-        });
-
-        function connect() {
-            showApp();
-            socket.emit('initFrame', frameId);
-        }
-
-        function init() {
-
-            document.getElementById('frameId').value = window.location.hash.substr(1)
-            document.getElementById('frameWidth').value = window.screen.availWidth;
-            document.getElementById('frameHeight').value = window.screen.availHeight;
-
-            if (document.getElementById('frameId').value === "") {
-                showSettings()
-            } else {
-                connect()
-            }
-        }
-
-        function showApp() {
-            $('#app').css('display', 'block');
-            $('#settings').css('display', 'none');
-            $('#loader').css('display', 'none');
-        }
-
-        function showSettings() {
-            $('#app').css('display', 'none');
-            $('#settings').css('display', 'block');
-            $('#loader').css('display', 'none');
-        }
-
-        function showError(color, text) {
-            $('#app').css('display', 'none');
-            $('#settings').css('display', 'none');
-            $('#loader').css('display', 'flex');
-            $("#loader").css('--loader-color', color);
-            $("#loader").css('--loader-text', text);
-        }
-
-        socket.on("connect_error", (err) => {
-            resetFrame();
-            showError('red', "'Magic Frame\\A\\A Connection Error'")
-            console.log("[Socket]", `[${new Date().toLocaleString()}]`, "connect_error: " + err);
-        });
-
-        socket.on("disconnect", (err) => {
-            resetFrame();
-            showError('red', "'Magic Frame\\A\\A Disconnected'")
-            console.log("[Socket]", `[${new Date().toLocaleString()}]`, "disconnect: " + err);
-        });
-
-        socket.io.on("reconnect", () => {
-            location.reload()
-        });
-
-        socket.on("change", (...args) => {
-            var json = JSON.parse(args);
-            console.log("[Frame]", `[${new Date().toLocaleString()}]`, `change to ${json.type}: [${json.file.id}] ${baseUrl}${json.file.src}`);
-
-            var testInfos = document.getElementById("testInfos");
-            document.querySelector("#testInfos .id").textContent = json.file.id;
-            document.querySelector("#testInfos .name").textContent = json.file.name;
-            document.querySelector("#testInfos .path").textContent = json.file.src;
-
-            if (json.testing)
-                testInfos.classList.remove("d-none")
-            else
-                testInfos.classList.add("d-none")
-
-            switch (json.type) {
-                case "img": loadPic(baseUrl + json.file.src + ""); break;
-                case "vid": loadVid(baseUrl + json.file.src + ""); break;
-                default: console.error("[Frame]", `[${new Date().toLocaleString()}]`, "type " + json.type + " is not supported"); break;
-            }
-        });
-
-        function blendFrame() {
-
-            let frameOld = document.querySelectorAll("#app .old")
-            let frameNew = document.querySelector("#app .img:not(.old) ,#app .video:not(.old)")
-
-            setTimeout(() => {
-                frameNew.style.opacity = 1;
-                for (const frame of frameOld) {
-                    frame.style.opacity = 0;
+            window.addEventListener('resize', () => {
+                if (socket.connected) {
+                    let size = {
+                        width: window.innerWidth,
+                        height: window.innerHeight
+                    }
+                    socket.emit('frameUpdateSize',size)
                 }
-            }, 100);
-
-
-            setTimeout(() => {
-                for (const frame of frameOld) {
-                    frame.remove();
-                }
-            }, 2100)
-        }
-
-        function loadVid(url) {
-            let html = '<video src="{{src}}" class="video" muted loop style="opacity: 0"></video>'
-            html = Mustache.render(html, {
-                src: url
             })
 
-            document.querySelector("#app .img:not(.old) ,#app .video:not(.old)")?.classList.add("old")
+            $(document).ready(function () {
 
-            document.querySelector("#app").innerHTML += html;
-            document.querySelector("#app .video").play()
+                document.getElementById("frameSetting").addEventListener("submit", (e) => {
+                    e.preventDefault();
+                    frameId = document.getElementById('frameId').value;
+                    window.location.hash = frameId.toLowerCase();
+                    connect();
+                })
 
-            blendFrame();
-        }
-
-        function loadPic(url) {
-            let html = '<img src="{{src}}" class="img" style="opacity: 0"></img>'
-            html = Mustache.render(html, {
-                src: url
+                setTimeout(init, 1000);
             });
 
-            document.querySelector("#app .img:not(.old) ,#app .video:not(.old)")?.classList.add("old")
-
-            document.querySelector("#app").innerHTML += html;
-
-            blendFrame();
-        }
-
-        function resetFrame() {
-            document.getElementById("app").textContent = "";
-
-            $("#loader").css('--loader-color', 'white');
-            $("#loader").css('--loader-text', "'Magic Frame\\A\\A #VERSION#'");
-        }
-    </script>
-</head>
-
-<body>
-    <div id="loader" style="--loader-color: white; --loader-text:'Magic Frame\A\A #VERSION#'">
-        <style>
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
+            function connect() {
+                showApp();
+                socket.emit('initFrame', frameId);
             }
 
-            body {
-                min-height: 100vh;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                background: #121212;
-            }
+            function init() {
 
-            #loader {
-                width: 250px;
-                height: 250px;
-                box-shadow: 16px 14px 20px #0000008c;
-                border-radius: 25px;
-                position: relative;
-                overflow: hidden;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                /*-webkit-mask-size: cover;*/
-                /*-webkit-mask-position: center;*/
-                /*-webkit-mask-image: url(imgs/logo-test.png);*/
-                /*mask-size: cover;*/
-                /*mask-position: center;*/
-                /*mask-image: url(imgs/logo-test.png);*/
-            }
+                document.getElementById('frameId').value = window.location.hash.substr(1)
+                document.getElementById('frameWidth').value = window.innerWidth;
+                document.getElementById('frameHeight').value = window.innerHeight;
 
-            #loader:before {
-                content: "";
-                background-image: conic-gradient(var(--loader-color) 20deg,
-                        transparent 120deg);
-                width: 150%;
-                height: 150%;
-                position: absolute;
-                animation: rotate 2s linear infinite;
-            }
-
-            #loader::after {
-                content: var(--loader-text);
-                width: 240px;
-                height: 240px;
-                background: #101010;
-                position: absolute;
-                border-radius: 25px;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                color: var(--loader-color);
-                font-size: larger;
-                letter-spacing: 5px;
-                box-shadow: inset 20px 20px 20px #0000008c;
-                white-space: pre;
-                text-align: center;
-                /*-webkit-mask-size: cover;*/
-                /*-webkit-mask-position: center;*/
-                /*-webkit-mask-image: url(imgs/logo-test.png);*/
-                /*mask-size: cover;*/
-                /*mask-position: center;*/
-                /*mask-image: url(imgs/logo-test.png);*/
-            }
-
-            @keyframes rotate {
-                0% {
-                    transform: rotate(0deg);
-                }
-
-                100% {
-                    transform: rotate(-360deg);
+                if (document.getElementById('frameId').value === "") {
+                    showSettings()
+                } else {
+                    connect()
                 }
             }
-        </style>
-    </div>
 
-    <div id="app" style="display:none">
-    </div>
+            function showApp() {
+                $('#app').css('display', 'block');
+                $('#settings').css('display', 'none');
+                $('#loader').css('display', 'none');
+            }
 
-    <div id="settings" style="display:none">
-        <div class="position-absolute top-50 start-50 translate-middle">
-            <form id="frameSetting">
-                <div class="form-floating mb-3">
-                    <input type="text" class="form-control" id="frameId" placeholder="">
-                    <label for="frameId">Frame ID</label>
-                </div>
-                <div class="row">
-                    <div class="col-md">
-                        <div class="form-floating mb-3">
-                            <input type="text" class="form-control-plaintext" disabled id="frameWidth" placeholder="">
-                            <label for="frameWidth">Width</label>
-                        </div>
-                    </div>
-                    <div class="col-md">
-                        <div class="form-floating mb-3">
-                            <input type="text" class="form-control-plaintext" disabled id="frameHeight" placeholder="">
-                            <label for="frameHeight">Height</label>
-                        </div>
-                    </div>
-                </div>
+            function showSettings() {
+                $('#app').css('display', 'none');
+                $('#settings').css('display', 'block');
+                $('#loader').css('display', 'none');
+            }
 
-                <button type="submit" class="btn btn-primary">Submit</button>
-            </form>
+            function showError(color, text) {
+                $('#app').css('display', 'none');
+                $('#settings').css('display', 'none');
+                $('#loader').css('display', 'flex');
+                $("#loader").css('--loader-color', color);
+                $("#loader").css('--loader-text', text);
+            }
+
+            socket.on("connect_error", (err) => {
+                resetFrame();
+                showError('red', "'Magic Frame\\A\\A Connection Error'")
+                console.log("[Socket]", `[${new Date().toLocaleString()}]`, "connect_error: " + err);
+            });
+
+            socket.on("disconnect", (err) => {
+                resetFrame();
+                showError('red', "'Magic Frame\\A\\A Disconnected'")
+                console.log("[Socket]", `[${new Date().toLocaleString()}]`, "disconnect: " + err);
+            });
+
+            socket.io.on("reconnect", () => {
+                location.reload()
+            });
+
+            socket.on("change", (...args) => {
+                var json = JSON.parse(args);
+                console.log("[Frame]", `[${new Date().toLocaleString()}]`, `change to ${json.type}: [${json.file.id}] ${baseUrl}${json.file.src}`);
+
+                var testInfos = document.getElementById("testInfos");
+                document.querySelector("#testInfos .id").textContent = json.file.id;
+                document.querySelector("#testInfos .name").textContent = json.file.name;
+                document.querySelector("#testInfos .path").textContent = json.file.src;
+
+                if (json.testing)
+                    testInfos.classList.remove("d-none")
+                else
+                    testInfos.classList.add("d-none")
+
+                switch (json.type) {
+                    //case "img": loadPic(baseUrl + json.file.src + ""); break;
+                    //case "vid": loadVid(baseUrl + json.file.src + ""); break;
+                    case "img": loadPic(baseUrl + json.file.id); break;
+                    case "vid": loadVid(baseUrl + json.file.id); break;
+                    default: console.error("[Frame]", `[${new Date().toLocaleString()}]`, "type " + json.type + " is not supported"); break;
+                }
+            });
+
+            function blendFrame() {
+
+                let frameOld = document.querySelectorAll("#app .old")
+                let frameNew = document.querySelector("#app .img:not(.old) ,#app .video:not(.old)")
+
+                setTimeout(() => {
+                    frameNew.style.opacity = 1;
+                    for (const frame of frameOld) {
+                        frame.style.opacity = 0;
+                    }
+                }, 100);
+
+
+                setTimeout(() => {
+                    for (const frame of frameOld) {
+                        frame.remove();
+                    }
+                }, 2100)
+            }
+
+            function loadVid(url) {
+                let html = '<video src="{{src}}" class="video" muted loop style="opacity: 0"></video>'
+                html = Mustache.render(html, {
+                    src: url
+                })
+
+                document.querySelector("#app .img:not(.old) ,#app .video:not(.old)")?.classList.add("old")
+
+                document.querySelector("#app").innerHTML += html;
+                document.querySelector("#app .video").play()
+
+                blendFrame();
+            }
+
+            function loadPic(url) {
+                let html = '<img src="{{src}}" class="img" style="opacity: 0"></img>'
+                html = Mustache.render(html, {
+                    src: url
+                });
+
+                document.querySelector("#app .img:not(.old) ,#app .video:not(.old)")?.classList.add("old")
+
+                document.querySelector("#app").innerHTML += html;
+
+                blendFrame();
+            }
+
+            function resetFrame() {
+                document.getElementById("app").textContent = "";
+
+                $("#loader").css('--loader-color', 'white');
+                $("#loader").css('--loader-text', "'Magic Frame\\A\\A #VERSION#'");
+            }
+        </script>
+    </head>
+
+    <body>
+        <div id="loader" style="--loader-color: white; --loader-text:'Magic Frame\A\A #VERSION#'">
+            <style>
+                * {
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
+                }
+
+                body {
+                    min-height: 100vh;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    background: #121212;
+                }
+
+                #loader {
+                    width: 250px;
+                    height: 250px;
+                    box-shadow: 16px 14px 20px #0000008c;
+                    border-radius: 25px;
+                    position: relative;
+                    overflow: hidden;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    /*-webkit-mask-size: cover;*/
+                    /*-webkit-mask-position: center;*/
+                    /*-webkit-mask-image: url(imgs/logo-test.png);*/
+                    /*mask-size: cover;*/
+                    /*mask-position: center;*/
+                    /*mask-image: url(imgs/logo-test.png);*/
+                }
+
+                #loader:before {
+                    content: "";
+                    background-image: conic-gradient(var(--loader-color) 20deg,
+                            transparent 120deg);
+                    width: 150%;
+                    height: 150%;
+                    position: absolute;
+                    animation: rotate 2s linear infinite;
+                }
+
+                #loader::after {
+                    content: var(--loader-text);
+                    width: 240px;
+                    height: 240px;
+                    background: #101010;
+                    position: absolute;
+                    border-radius: 25px;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    color: var(--loader-color);
+                    font-size: larger;
+                    letter-spacing: 5px;
+                    box-shadow: inset 20px 20px 20px #0000008c;
+                    white-space: pre;
+                    text-align: center;
+                    /*-webkit-mask-size: cover;*/
+                    /*-webkit-mask-position: center;*/
+                    /*-webkit-mask-image: url(imgs/logo-test.png);*/
+                    /*mask-size: cover;*/
+                    /*mask-position: center;*/
+                    /*mask-image: url(imgs/logo-test.png);*/
+                }
+
+                @keyframes rotate {
+                    0% {
+                        transform: rotate(0deg);
+                    }
+
+                    100% {
+                        transform: rotate(-360deg);
+                    }
+                }
+            </style>
         </div>
-    </div>
 
-    <div id="testInfos" class="d-none">
-        <span class="id"></span>
-        <span class="name"></span>
-        <span class="path"></span>
-    </div>
+        <div id="app" style="display:none">
+        </div>
 
-</body>
+        <div id="settings" style="display:none">
+            <div class="position-absolute top-50 start-50 translate-middle">
+                <form id="frameSetting">
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="frameId" placeholder="">
+                        <label for="frameId">Frame ID</label>
+                    </div>
+                    <div class="row">
+                        <div class="col-md">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control-plaintext" disabled id="frameWidth"
+                                    placeholder="">
+                                <label for="frameWidth">Width</label>
+                            </div>
+                        </div>
+                        <div class="col-md">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control-plaintext" disabled id="frameHeight"
+                                    placeholder="">
+                                <label for="frameHeight">Height</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="testInfos" class="d-none">
+            <span class="id"></span>
+            <span class="name"></span>
+            <span class="path"></span>
+        </div>
+
+    </body>
 
 </html>

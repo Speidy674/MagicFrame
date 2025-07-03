@@ -11,42 +11,63 @@ function FileList() {
 	var fileListNames = [];
 	var fileInfos = [];
 
-	this.loadFileList = async function () {
-		Log.log("[FileList]", "Load files ...");
-		fs.readdir(path.resolve(`${global.root_path}/files/`), { recursive: true }, (err, tmpfileList) => {
-			tmpfileList.forEach(function (file) {
+	this.loadFileList = async () => {
+		console.log("[FileList]", "Load files ...");
+		try {
+			const dirContent = fs.readdirSync(path.resolve(global.root_path,config.fileFolder), { recursive: true });
+
+			for (const file of dirContent) {
 				if (formats.some(v => file.includes(v))) {
 					console.debug("[FileList]", `${file} is supported`);
 					const parts = file.split(/[\/\\]/);
 					const fileName = parts.pop();
-
+					
 					if (!fileListNames.includes(fileName)) {
 
 						let id = fileListNames.push(fileName) - 1;
 						let fileInfo = {
+							id: id,
 							src: file,
 							folder: parts,
 							name: fileName,
-							id: id,
+							systemSrc: path.resolve(global.root_path,config.fileFolder,file)
 						}
+						fileInfo.type = this.isVid(fileInfo) ? "vid" : "img"
 						fileInfos[id] = (fileInfo);
-
 					}
+
 				} else {
 					console.debug("[FileList]", `${file} is not supported`);
 				}
-			});
-		});
+			}
+		} catch (e) {
+			console.error(e)
+		}
+
+		const removedFilesId = []
+
 		for (const id of fileListNames.keys()) {
 			const name = fileListNames[id]
 			const fileInfo = fileInfos[id]
-			let exists = fs.existsSync(`${global.root_path}/files/${fileInfo.src}`);
+			let exists = fs.existsSync(global.root_path,config.fileFolder,fileInfo.src);
+			if(!exists) {
+				console.debug("[FileList]",`${name} is gone.`)
+				removedFilesId.push(id)
+			}
 		}
 
-		console.log(fileInfos.length, fileListNames.length);
+		for (const id of removedFilesId) {
+			fileListNames.splice(id,1)
+			fileInfos.splice(id,1)
+		}
+
+		for (const id of fileListNames.keys()) {
+			const name = fileListNames[id]
+			fileInfos[id].id = id
+		}
 	};
 
-	this.getRandomFile = function () {
+	this.getRandomFile = () => {
 		var fileInfo = fileInfos[Math.floor(Math.random() * fileListNames.length)];
 		return fileInfo;
 	}
@@ -60,7 +81,7 @@ function FileList() {
 		return fileInfos;
 	}
 
-	this.getFile = (id) => {
+	this.getFileInfo = (id) => {
 		return fileInfos[id];
 	}
 

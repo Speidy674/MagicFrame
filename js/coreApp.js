@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const Server = require(`${__dirname}/server`);
+const Database = require(`${__dirname}/db/core`);
 const Utils = require(`utils`);
 
 
@@ -15,6 +16,7 @@ process.on("uncaughtException", function (err) {
 	Log.error(err);
 });
 
+
 /**
  * The Core
  *
@@ -25,6 +27,7 @@ function Core() {
 	let io;
 	let app;
 	let server;
+	let db;
 
 	/**
 	 * Loads the config file.
@@ -68,7 +71,11 @@ function Core() {
 	};
 
 	this.start = function (callback) {
-		httpServer = new Server(config, function (_app, _io, _server) {
+		db = new Database(config)
+
+		db.sync()
+
+		httpServer = new Server(config, db, function (_app, _io, _server) {
 			Log.log("[Server]","Server started ...");
 			io = _io;
 			app = _app;
@@ -83,12 +90,13 @@ function Core() {
 			});
 		});
 
-		this.io = io;
-		this.app = app;
-		this.server = server;
+		this.io = io
+		this.app = app
+		this.server = server
+		this.db = db
 
 		if (typeof callback === "function") {
-			callback(app, io, server);
+			callback(app, io, server, db);
 		}
 
 	};

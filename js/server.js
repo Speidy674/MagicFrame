@@ -6,14 +6,16 @@
  */
 const express = require("express");
 const app = require("express")();
-const ipfilter = require("express-ipfilter").IpFilter;
 const path = require("path");
-var cors = require('cors');
+const cors = require('cors')
 const helmet = require("helmet");
-const utils = require("utils");
+const cookieParser = require('cookie-parser');
+const session = require('express-session')
+const crypto = require("crypto");
+//const connectSessionSequelize = require('connect-session-sequelize')(session.Store);
 
 
-function Server(config, callback) {
+function Server(config, db, callback) {
 	const port = config.port;
 	const serverSockets = new Set();
 
@@ -43,27 +45,49 @@ function Server(config, callback) {
 		});
 	});
 
-	Log.log("[Server]",`Starting server on port ${port} ... `);
+	Log.log("[Server]", `Starting server on port ${port} ... `);
 
 	server.listen(port, config.address || "localhost");
 
-	if (config.ipWhitelist instanceof Array && config.ipWhitelist.length === 0) {
-		Log.warn(utils.colors.warn("You're using a full whitelist configuration to allow for all IPs"));
-	}
+	app.set('trust proxy', 1);
 
-	app.use(function (req, res, next) {
-		ipfilter(config.ipWhitelist, { mode: config.ipWhitelist.length === 0 ? "deny" : "allow", log: false })(req, res, function (err) {
-			if (err === undefined) {
-				return next();
-			}
-			Log.log(err.message);
-			res.status(403).send("This device is not allowed to access your MagicFrame. <br> Please check your config.js change this.");
-		});
-	});
+	app.use(cookieParser(config.cookieParserKey));
+
+	//const sessionStore = new connectSessionSequelize({
+	//	db: db.getInstance(),
+	//	table: 'web_session',
+	//	extendDefaultFields: function (defaults,session) {
+	//		return {
+	//			data: defaults.data,
+	//			expires: defaults.expires,
+	//			user_id: session.userId ?? "",
+	//		}
+	//	}
+	//});
+
+	const sessionMiddleware = session({
+		genid: () => crypto.randomUUID(),
+		name: 'sid',
+		secret: config.cookieParserKey,
+	//	store: sessionStore,
+		resave: false,
+		saveUninitialized: false,
+		cookie: {
+			httpOnly: true,
+			secure: true,
+			maxAge: 1000 * 60 * 60 * 24
+		}
+	})
+
+	app.use(sessionMiddleware)
+
+	io.engine.use(sessionMiddleware)
+
+	//sessionStore.sync();
 
 	app.use(helmet(config.httpHeaders));
 
-	app.use(function (req, res, next) {
+	app.use(function defaultHeaders(req, res, next) {
 		res.header("Access-Control-Allow-Origin", "*");
 		return next();
 	});
@@ -78,25 +102,50 @@ function Server(config, callback) {
 	var debugs = express.Router();
 
 	debugs.get("/routes", function (req, res) {
-		const stacks = app._router.stack
-		const availableRoutes = stacks.reduce(
-			(acc, val) => acc.concat(
-				val.route ? [val.route.path] : val.name === "router" ? val.handle.stack.filter(
-					x => x.route
-				).map(
-					x => val.regexp.toString().match(/\/[a-z]+/)[0] + (x.route.path === '/' ? '' : x.route.path)
-				) : []
-			), []
-		).sort();
+		const stacks = app.stack || (app.router && app.router.stack)
 
-		res.send(availableRoutes);
+		let endpoints = []
+
+		const getRoute = (stacks, path = "") => {
+			stacks.forEach((layer) => {
+				if (layer.name === 'handle') {
+					let object = {
+						method: Object.entries(layer.route.methods),
+						path: Array.isArray(layer.route.path) ? layer.route.path.map((routePath) => path + routePath) : path + layer.route.path
+					}
+					endpoints.push(object)
+				} else if (layer.name === 'router') {
+					getRoute(layer.handle.stack, path + (layer.path ?? ""))
+				} else if (layer.name === 'serveStatic') {
+
+				}
+			})
+		}
+
+		if (stacks) {
+			getRoute(stacks)
+		}
+
+		res.send(endpoints);
 	});
+
+	debugs.get("/session", function (req, res) {
+		res.json(req.session);
+	})
+
+	debugs.get("/cookies", function (req, res) {
+		res.json(req.signedCookies);
+	})
+
+	debugs.get("/db/:table", async function (req,res) {
+		res.json(await db.getModel(req.params.table).findAll())
+	})
 
 	app.get("/version", function (req, res) {
 		res.send(global.version);
 	});
 
-	app.use("/debugs", debugs);;
+	app.use("/debugs", debugs);
 
 	if (typeof callback === "function") {
 		callback(app, io, server);

@@ -1,0 +1,47 @@
+<h1 class="mt-4">Frames</h1>
+<ol class="breadcrumb mb-4">
+    <li class="breadcrumb-item active">Frames</li>
+</ol>
+
+<div class="position-absolute top-0 end-0 m-1 ">
+    <button type="button" onclick="fetch(`/api/frames/testing`)" class="btn btn-primary">
+        Frames Testmodus
+    </button>
+    <button type="button" onclick="loadFrames()" class="btn btn-primary">
+        Neuladen
+    </button>
+</div>
+
+<div class="row row-cols-sm-1 row-cols-md-4 g-2 p-2" id="framesContainer">
+</div>
+
+{{={{{ }}}=}}
+<template id="frameItem">
+    <div class="col-sm-2 col-md-3">
+        <div class="card bg-dark" style=" height: 250px; ">
+            {{#isVid}}
+            <video src="{{src}}" class="card-img" style="aspect-ratio: 16/9;object-fit: cover;height: 100%;"
+                autoplay muted></video>
+            {{/isVid}}
+            {{^isVid}}
+            <img src="{{src}}" class="card-img" style="aspect-ratio: 16/9;object-fit: cover;height: 100%;"></img>
+            {{/isVid}}
+
+            <div class="card-img-overlay text-white" style="backdrop-filter: blur(5px); background-color: #0000004d;">
+                <div class="card-header d-flex justify-content-between">
+                    <h5 class="pe-3">Frame {{#testing}} Testing Mode {{/testing}}</h5>
+                    <h5 class="text-truncate">{{id}}</h5>
+                </div>
+                <div class="card-body">
+                    <div>
+                        <p class="text-truncate">File: {{fileName}}</p>
+                        <p class="text-truncate">Width: {{width}}</p>
+                        <p class="text-truncate">Height: {{height}}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+{{{={{ }}=}}}
+<script src="/dashboard/js/frames.js" defer></script>
