@@ -45,7 +45,7 @@
     "socket.io": "^4.8.1"
   },
   "devDependencies": {
-    "electron": "^37.1.0",
+    "electron": "^37.3.1",
     "husky": "^9.1.7",
     "nodemon": "^3.1.10"
   },
