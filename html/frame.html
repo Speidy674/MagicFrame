@@ -25,6 +25,8 @@
             let oldType = "";
             let baseUrl = "/data/";
 
+            let playingTwitch = false;
+
             let socket = io({
                 extraHeaders: {
                     type: "frame",
@@ -43,7 +45,7 @@
                         width: window.innerWidth,
                         height: window.innerHeight
                     }
-                    socket.emit('frameUpdateSize',size)
+                    socket.emit('frameUpdateSize', size)
                 }
             })
 
@@ -114,6 +116,11 @@
             });
 
             socket.on("change", (...args) => {
+                if (playingTwitch) {
+                    console.log("[Frame]", `[${new Date().toLocaleString()}]`, `Skip becuse playing Twitch`);
+                    return;
+                }
+
                 var json = JSON.parse(args);
                 console.log("[Frame]", `[${new Date().toLocaleString()}]`, `change to ${json.type}: [${json.file.id}] ${baseUrl}${json.file.src}`);
 
@@ -128,13 +135,22 @@
                     testInfos.classList.add("d-none")
 
                 switch (json.type) {
-                    //case "img": loadPic(baseUrl + json.file.src + ""); break;
-                    //case "vid": loadVid(baseUrl + json.file.src + ""); break;
                     case "img": loadPic(baseUrl + json.file.id); break;
                     case "vid": loadVid(baseUrl + json.file.id); break;
                     default: console.error("[Frame]", `[${new Date().toLocaleString()}]`, "type " + json.type + " is not supported"); break;
                 }
             });
+
+            socket.on("twitch.play", (type, typeValue, muted) => {
+                loadTwitch(type, typeValue, muted)
+            })
+
+            socket.on("twitch.stop", (type, typeInfo) => {
+                if (playingTwitch) {
+                    resetFrame()
+                    socket.emit('frameStoppedTwitch', frameId)
+                }
+            })
 
             function blendFrame() {
 
@@ -183,7 +199,20 @@
                 blendFrame();
             }
 
+            function loadTwitch(type, typeValue, muted = false) {
+                playingTwitch = true;
+                let html = '<iframe src="https://player.twitch.tv/?{{type}}={{typeValue}}&parent={{parent}}&muted={{muted}}" class="twitch" allowfullscreen> </iframe>'
+                html = Mustache.render(html, {
+                    type,
+                    typeValue,
+                    parent: this.location.host.split(":")[0],
+                    muted
+                });
+                document.querySelector("#app").innerHTML = html;
+            }
+
             function resetFrame() {
+                playingTwitch = false;
                 document.getElementById("app").textContent = "";
 
                 $("#loader").css('--loader-color', 'white');

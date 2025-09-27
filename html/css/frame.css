@@ -17,6 +17,14 @@
     z-index: 1;
 }
 
+.twitch {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    object-fit: contain;
+    z-index: 2;
+}
+
 .old {
     z-index: 2;
 }
