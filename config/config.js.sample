@@ -32,7 +32,7 @@ let config = {
 	intervalFileListUpdate: "*/15 * * * *",
 	intervalFrameChange: "*/5 * * * *",
 
-	logLevel: ["INFO", "LOG", "WARN", "ERROR", "DEBUG"] // Add "DEBUG" for even more logging
+	logLevel: ["INFO", "LOG", "WARN", "ERROR"] // Add "DEBUG" for even more logging
 
 };
 

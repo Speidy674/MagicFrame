@@ -109,8 +109,15 @@ function Server(config, db, callback) {
 		const getRoute = (stacks, path = "") => {
 			stacks.forEach((layer) => {
 				if (layer.name === 'handle') {
+					const usedMethods = [];
+					const methods = Object.assign({},layer.route.methods)
+					for (const method of Object.keys(methods)) {
+						if(methods[method]){
+							usedMethods.push(method)
+						}
+					}
 					let object = {
-						method: Object.entries(layer.route.methods),
+						method: usedMethods,
 						path: Array.isArray(layer.route.path) ? layer.route.path.map((routePath) => path + routePath) : path + layer.route.path
 					}
 					endpoints.push(object)

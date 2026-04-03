@@ -115,7 +115,7 @@ async function main() {
 
 		data.get("/:file_id", (req, res) => {
 			const fileInfo = fileList.getFileInfo(req.params.file_id);
-			
+
 			console.debug(`${fileInfo.name} (${req.params.file_id}) has been requested`);
 			res.sendFile(fileInfo.systemSrc);
 		});
@@ -161,6 +161,51 @@ async function main() {
 			res.sendStatus(200);
 		})
 
+		api.get("/frames/twitch/play", (req, res) => {
+			let type = req.query.type ?? "channel";
+			let typeValue = req.query.typeValue ?? null;
+			let frameId = req.query.frameId ?? null;
+			let muted = req.query.muted ?? true;
+
+			console.info("/frames/twitch/play", type, typeValue, frameId, muted)
+
+			if (typeValue === null) {
+				res.sendStatus(404);
+				return;
+			}
+
+			if (frameId !== null) {
+				for (let [id, socket] of core.io.of("/").sockets) {
+					if (socket.frame.id == frameId && socket.frame.init) {
+						socket.emit("twitch.play", type, typeValue, muted)
+					}
+				}
+			}
+			else {
+				core.io.emit("twitch.play", type, typeValue, muted)
+			}
+
+			res.sendStatus(200);
+		})
+
+		api.get("/frames/twitch/stop", (req, res) => {
+			let frameId = req.query.frameId ?? null;
+
+			console.info("/frames/twitch/stop", frameId)
+
+			if (frameId !== null) {
+				for (let [id, socket] of core.io.of("/").sockets) {
+					if (socket.frame.id == frameId && socket.frame.init) {
+						socket.emit("twitch.stop")
+					}
+				}
+			}
+			else {
+				core.io.emit("twitch.stop")
+			}
+
+			res.sendStatus(200);
+		})
 
 		api.get("/files", (req, res) => {
 			let { page = 1, limit = 25 } = req.query
@@ -187,7 +232,7 @@ async function main() {
 
 		api.get("/file/:id", (req, res) => {
 			let file = fileList.getFile(req.params.id) ?? null;
-			if(file)
+			if (file)
 				res.status(200).json(file);
 			else
 				res.sendStatus(404)
@@ -264,10 +309,15 @@ async function main() {
 	})
 
 	eventSub.on('socket:frameUpdateSize', (socket, size) => {
-		if(socket.frame)
-		{
+		if (socket.frame) {
 			socket.frame.width = size.width
 			socket.frame.height = size.height
+		}
+	})
+
+	eventSub.on('socket:frameStoppedTwitch', (socket) => {
+		if (socket.frame.init === true) {
+			sendFile(fileList.getRandomFile(), socket.id);
 		}
 	})
 
