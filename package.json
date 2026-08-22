@@ -37,15 +37,15 @@
     "express-ipfilter": "^1.4.0",
     "express-session": "^1.19.0",
     "feedme": "^2.0.2",
-    "helmet": "^8.1.0",
+    "helmet": "^8.3.0",
     "module-alias": "^2.3.4",
     "mustache": "^4.2.0",
-    "node-cron": "^4.2.1",
+    "node-cron": "^4.6.0",
     "node-fetch": "^3.3.2",
     "socket.io": "^4.8.3"
   },
   "devDependencies": {
-    "electron": "^41.1.1",
+    "electron": "^43.4.1",
     "husky": "^9.1.7",
     "nodemon": "^3.1.14"
   },
