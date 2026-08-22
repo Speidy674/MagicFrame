@@ -1,0 +1,85 @@
+Project project_name {
+    Note: 'MagicFrame - a advanced Smart Photo Frame solution'
+    database_type: 'SQLLite'
+}
+
+Table frames {
+    id varchar(100) [pk]
+    status int
+    lastseen timestamp
+    ip varchar(100)
+    mode int
+    showing_ref varchar(100)
+    showing_id bigint(100)
+    showing_updated timestamp
+    source_ref varchar(100)
+    source_id bigint(100)
+    controller_ref varchar(100)
+    controller_id bigint(100)
+}
+
+Table frame_settings {
+    frame_id varchar(100) [pk, ref: > frames.id]
+    muted bool [default: false]
+    volume int [default: 50]
+    interval int [default: 0]
+}
+
+Table media {
+    id bigint [pk, increment]
+    name varchar(100)
+    path text
+    type varchar(50)
+    mime_type varchar(150)
+    size bigint
+    width int
+    height int
+    duration int [default: null]
+}
+
+Table scenes {
+    id bigint [pk, increment]
+    name varchar(100)
+    description text
+}
+
+Table scene_items {
+    id int [pk, increment]
+    scene_id bigint [ref: > scenes.id]
+    frame_id varchar(100) [ref: > frames.id]
+    media_id bigint [ref: > media.id]
+
+    indexes {
+        (scene_id, frame_id) [unique]
+    }
+}
+
+Table playlists {
+    id bigint [pk, increment]
+    name varchar(100)
+    description text
+    priority int [default: 0]
+    active bool [default: false]
+}
+
+Table playlist_frames {
+    playlist_id bigint [ref: > playlists.id]
+    frame_id varchar(100) [ref: > frames.id]
+
+    indexes {
+        (playlist_id, frame_id) [pk]
+    }
+}
+
+Table playlist_items {
+    id bigint [pk, increment]
+    playlist_id bigint [ref: > playlists.id]
+    position int
+    item_type varchar(30)
+    item_id bigint
+    duration int [default: 0]
+    
+    indexes {
+        (playlist_id, position) [unique]
+    }
+}
