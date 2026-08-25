@@ -1,6 +1,8 @@
 config/config.js
 CA/
 
+data/
+
 # Logs
 logs
 *.log

@@ -1,4 +1,10 @@
 # Ignore artifacts:
 /config
 /coverage
+package.json
 package-lock.json
+
+/public/js/libs
+
+/html
+/jsOld
