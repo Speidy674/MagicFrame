@@ -11,16 +11,17 @@ Table frames {
     mode int
     showing_ref varchar(100)
     showing_id bigint(100)
+    showing_data text
     showing_updated timestamp
     source_ref varchar(100)
-    source_id bigint(100)
+    source_id bigint
     controller_ref varchar(100)
-    controller_id bigint(100)
+    controller_id bigint
 }
 
 Table frame_settings {
     frame_id varchar(100) [pk, ref: > frames.id]
-    muted bool [default: false]
+    muted bool [default: true]
     volume int [default: 50]
     interval int [default: 0]
 }
@@ -77,6 +78,7 @@ Table playlist_items {
     position int
     item_type varchar(30)
     item_id bigint
+    item_data text
     duration int [default: 0]
     
     indexes {
