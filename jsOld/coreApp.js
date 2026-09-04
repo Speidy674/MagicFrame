@@ -2,18 +2,17 @@ const fs = require("fs");
 const path = require("path");
 const Server = require(`${__dirname}/server`);
 const Database = require(`${__dirname}/db/core`);
-const Utils = require(`utils`);
 
 
 global.version = require(`${__dirname}/../package.json`).version;
-Log.log("[Core]","Starting MagicFrame Core: v" + global.version);
+console.log("[Core]", "Starting MagicFrame Core: v" + global.version);
 
 global.root_path = path.resolve(`${__dirname}/../`);
 
 
 process.on("uncaughtException", function (err) {
-	Log.error("Whoops! There was an uncaught exception...");
-	Log.error(err);
+	console.error("Whoops! There was an uncaught exception...");
+	console.error(err);
 });
 
 
@@ -35,7 +34,7 @@ function Core() {
 	 * @param {Function} callback Function to be called after loading the config
 	 */
 	function loadConfig(callback) {
-		Log.log("[Core]","Loading config ...");
+		console.log("[Core]", "Loading config ...");
 		const configFilename = path.resolve(`${global.root_path}/config/config.js`);
 
 		try {
@@ -45,13 +44,13 @@ function Core() {
 			callback(config);
 		} catch (e) {
 			if (e.code === "ENOENT") {
-				Log.error(Utils.colors.error("[Core]","WARNING! Could not find config file. Please create one."));
+				console.error("[Core]", "WARNING! Could not find config file. Please create one.");
 				process.exit(0);
 			} else if (e instanceof ReferenceError || e instanceof SyntaxError) {
-				Log.error(Utils.colors.error("[Core]",`WARNING! Could not validate config file. Please correct syntax errors at or above this line: ${e.stack}`));
+				console.error("[Core]", `WARNING! Could not validate config file. Please correct syntax errors at or above this line: ${e.stack}`);
 				process.exit(0);
 			} else {
-				Log.error(Utils.colors.error("[Core]",`WARNING! Could not load config file. Error found: ${e}`));
+				console.error("[Core]", `WARNING! Could not load config file. Error found: ${e}`);
 				process.exit(0);
 			}
 			callback(defaults);
@@ -62,7 +61,7 @@ function Core() {
 		loadConfig(function (c) {
 			config = c;
 
-			Log.setLogLevel(config.logLevel);
+			console.setLogLevel(config.logLevel);
 
 			if (typeof callback === "function") {
 				callback(config);
@@ -76,16 +75,16 @@ function Core() {
 		db.sync()
 
 		httpServer = new Server(config, db, function (_app, _io, _server) {
-			Log.log("[Server]","Server started ...");
+			console.log("[Server]", "Server started ...");
 			io = _io;
 			app = _app;
 			server = _server;
 
 			io.on('connection', (socket) => {
-				Log.debug("[Socket]",'User connected');
+				console.debug("[Socket]", 'User connected');
 
 				socket.on('disconnect', () => {
-					Log.debug("[Socket]",'User disconnected');
+					console.debug("[Socket]", 'User disconnected');
 				});
 			});
 		});

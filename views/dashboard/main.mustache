@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html class="dark">
+
+    <head>
+        <meta charset="UTF-8">
+        <title>MagicFrame - Dashboard - Main</title>
+        <link rel="stylesheet" href="/css/main.css" />
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="/js/libs/mustache.min.js"></script>
+        <script src="/js/libs/lucide.min.js"></script>
+        <script src="/js/core.js" type="module" defer></script>
+        <script src="/js/dashboard/main.js" type="module" defer></script>
+    </head>
+
+    <body class="bg-background text-foreground antialiased">
+
+        {{>loader}}
+
+        <div class="flex flex-col m-auto min-h-svh w-[95svw] md:w-[98svw] max-w-480">
+
+            {{>dashboard.header}}
+
+            <div class="grow flex gap-2">
+
+                {{>dashboard.navigation}}
+
+                <main class="grow">
+                    <div class="grid grid-cols-4 gap-4 p-2">
+                        <div
+                            class="bg-foreground/8 border border-accent/60 shadow-xl shadow-accent/15 min-h-22 p-3 rounded-xl">
+                            <div class="w-full font-bold inline-flex gap-2 text-muted">
+                                <i data-lucide="gallery-horizontal-end"></i>
+                                Frames
+                            </div>
+                            {{frameCount}}
+                        </div>
+                        <div
+                            class="bg-foreground/8 border border-accent/60 shadow-xl shadow-accent/15 min-h-22 p-3 rounded-xl">
+                            <div class="w-full font-bold inline-flex gap-2 text-muted">
+                                <i data-lucide="images"></i>
+                                Media
+                            </div>
+                            {{mediaCount}}
+                        </div>
+                        <div
+                            class="bg-foreground/8 border border-accent/60 shadow-xl shadow-accent/15 min-h-22 p-3 rounded-xl">
+                            <div class="w-full font-bold inline-flex gap-2 text-muted">
+                                <i data-lucide="sticky-notes"></i>
+                                Scenes
+                            </div>
+                            {{sceneCount}}
+                        </div>
+                        <div
+                            class="bg-foreground/8 border border-accent/60 shadow-xl shadow-accent/15 min-h-22 p-3 rounded-xl">
+                            <div class="w-full font-bold inline-flex gap-2 text-muted">
+                                <i data-lucide="list-video"></i>
+                                Playlists
+                            </div>
+                            {{playlistCount}}
+                        </div>
+                    </div>
+                </main>
+            </div>
+
+            {{>dashboard.footer}}
+
+        </div>
+
+    </body>
+
+</html>

@@ -1,169 +1,146 @@
-/* Twitch Overlay
- * Server
- *
- * By Speidy674 https://speidy674.de
- * MIT Licensed.
- */
-const express = require("express");
-const app = require("express")();
-const path = require("path");
-const cors = require('cors')
-const helmet = require("helmet");
-const cookieParser = require('cookie-parser');
-const session = require('express-session')
-const crypto = require("crypto");
-//const connectSessionSequelize = require('connect-session-sequelize')(session.Store);
+import cookieParser from 'cookie-parser';
+import express from 'express';
+import fs from 'fs';
+import helmet from 'helmet';
+import http from 'http';
+import https from 'https';
+import crypto from 'crypto';
+import session from 'express-session';
+import mustache from 'mustache';
+import path from 'path';
+import mustacheExpress from 'mustache-express';
 
+export default class Server {
+    #server;
+    #app;
+    #config;
+    #sessionMiddleware;
 
-function Server(config, db, callback) {
-	const port = config.port;
-	const serverSockets = new Set();
+    constructor(config) {
+        console.log('[Server]', 'init');
+        this.#config = config;
 
-	let server = null;
-	if (config.useHttps) {
-		const options = {
-			key: fs.readFileSync(config.httpsPrivateKey),
-			cert: fs.readFileSync(config.httpsCertificate)
-		};
-		server = require("https").Server(options, app);
-	} else {
-		server = require("http").Server(app);
-	}
+        this.createExpress();
+        this.setupExpressViewEngine();
+        this.createServer();
+        this.startServer();
 
-	const io = require("socket.io")(server, {
-		cors: {
-			origin: /.*$/,
-			credentials: true
-		},
-		allowEIO3: true
-	});
+        this.#app.use(express.static(path.resolve(global.root_path, 'public')));
+    }
 
-	server.on("connection", (socket) => {
-		serverSockets.add(socket);
-		socket.on("close", () => {
-			serverSockets.delete(socket);
-		});
-	});
+    get express() {
+        return this.#app;
+    }
 
-	Log.log("[Server]", `Starting server on port ${port} ... `);
+    get server() {
+        return this.#server;
+    }
 
-	server.listen(port, config.address || "localhost");
+    get sessionMiddleware() {
+        if (!this.#sessionMiddleware) this.#createSessionMiddleware();
+        return this.#sessionMiddleware;
+    }
 
-	app.set('trust proxy', 1);
+    createExpress() {
+        console.debug('[Server]', 'Create Express');
 
-	app.use(cookieParser(config.cookieParserKey));
+        this.#app = express();
+        this.#app.use(this.#requestLogger.bind(this));
+        this.#app.set('trust proxy', 1);
+        this.#app.use(cookieParser(this.#config.cookieParserKey));
+        this.#app.use(this.sessionMiddleware);
+        this.#app.use(helmet(this.#config.httpHeaders));
+        this.#app.use(express.json());
+        this.#app.use(express.urlencoded({ extended: true }));
+        this.#app.use(function defaultHeaders(req, res, next) {
+            res.header('Access-Control-Allow-Origin', '*');
+            return next();
+        });
+    }
 
-	//const sessionStore = new connectSessionSequelize({
-	//	db: db.getInstance(),
-	//	table: 'web_session',
-	//	extendDefaultFields: function (defaults,session) {
-	//		return {
-	//			data: defaults.data,
-	//			expires: defaults.expires,
-	//			user_id: session.userId ?? "",
-	//		}
-	//	}
-	//});
+    setupExpressViewEngine() {
+        console.debug('[Server]', 'Setup Express View Engine');
 
-	const sessionMiddleware = session({
-		genid: () => crypto.randomUUID(),
-		name: 'sid',
-		secret: config.cookieParserKey,
-	//	store: sessionStore,
-		resave: false,
-		saveUninitialized: false,
-		cookie: {
-			httpOnly: true,
-			secure: true,
-			maxAge: 1000 * 60 * 60 * 24
-		}
-	})
+        const viewfolder = path.resolve(global.root_path, 'views');
+        const partialsfolder = path.resolve(
+            global.root_path,
+            'public/templates'
+        );
 
-	app.use(sessionMiddleware)
+        let engine = mustacheExpress((file, ext) => {
+            file = file.replaceAll('.', '/');
+            return path.resolve(partialsfolder, file + ext);
+        }, '.mustache');
 
-	io.engine.use(sessionMiddleware)
+        engine.cache.maxAge = 1;
 
-	//sessionStore.sync();
+        this.#app.engine('mustache', engine);
+        this.#app.set('view engine', 'mustache');
+        this.#app.set('views', viewfolder);
+    }
 
-	app.use(helmet(config.httpHeaders));
+    createServer() {
+        console.debug('[Server]', 'Create Web Server');
 
-	app.use(function defaultHeaders(req, res, next) {
-		res.header("Access-Control-Allow-Origin", "*");
-		return next();
-	});
+        if (this.#config.useHttps) {
+            const options = {
+                key: fs.readFileSync(this.#config.httpsPrivateKey),
+                cert: fs.readFileSync(this.#config.httpsCertificate),
+            };
+            this.#server = https.Server(options, this.#app);
+        } else {
+            this.#server = http.Server(this.#app);
+        }
+    }
 
-	app.use("/js", express.static(__dirname));
+    startServer() {
+        let address = this.#config.address || 'localhost';
+        let port = this.#config.port || '8080';
 
-	const dirs = ["/css", "/fonts", "/files", "/imgs", "/vids", "/sounds"];
-	for (const dir of dirs) {
-		app.use(dir, express.static(path.resolve(global.root_path + "/html" + dir)));
-	}
+        console.log('[Server]', `Starting server on port ${address}:${port}`);
 
-	var debugs = express.Router();
+        this.#server.listen(port, address);
+    }
 
-	debugs.get("/routes", function (req, res) {
-		const stacks = app.stack || (app.router && app.router.stack)
+    serveModule(url, file) {
+        this.#app.get(url, (req, res) => {
+            res.sendFile(path.resolve(global.root_path, file));
+        });
+    }
 
-		let endpoints = []
+    #createSessionMiddleware() {
+        console.debug('[Server]', 'Create new Session Middleware');
 
-		const getRoute = (stacks, path = "") => {
-			stacks.forEach((layer) => {
-				if (layer.name === 'handle') {
-					const usedMethods = [];
-					const methods = Object.assign({},layer.route.methods)
-					for (const method of Object.keys(methods)) {
-						if(methods[method]){
-							usedMethods.push(method)
-						}
-					}
-					let object = {
-						method: usedMethods,
-						path: Array.isArray(layer.route.path) ? layer.route.path.map((routePath) => path + routePath) : path + layer.route.path
-					}
-					endpoints.push(object)
-				} else if (layer.name === 'router') {
-					getRoute(layer.handle.stack, path + (layer.path ?? ""))
-				} else if (layer.name === 'serveStatic') {
+        this.#sessionMiddleware = session({
+            genid: () => crypto.randomUUID(),
+            name: 'sid',
+            secret: this.#config.cookieParserKey,
+            //	store: sessionStore,
+            resave: false,
+            saveUninitialized: false,
+            cookie: {
+                httpOnly: true,
+                secure: true,
+                maxAge: 1000 * 60 * 60 * 24,
+            },
+        });
+    }
 
-				}
-			})
-		}
+    #requestLogger(req, res, next) {
+        console.debug(
+            '[Server]',
+            req.method,
+            req.path,
+            '-',
+            req.headers['user-agent']
+        );
 
-		if (stacks) {
-			getRoute(stacks)
-		}
+        next();
+    }
 
-		res.send(endpoints);
-	});
+    stop() {
+        console.debug('[Server]', 'Closing');
 
-	debugs.get("/session", function (req, res) {
-		res.json(req.session);
-	})
-
-	debugs.get("/cookies", function (req, res) {
-		res.json(req.signedCookies);
-	})
-
-	debugs.get("/db/:table", async function (req,res) {
-		res.json(await db.getModel(req.params.table).findAll())
-	})
-
-	app.get("/version", function (req, res) {
-		res.send(global.version);
-	});
-
-	app.use("/debugs", debugs);
-
-	if (typeof callback === "function") {
-		callback(app, io, server);
-	}
-
-	this.close = function () {
-		for (const socket of serverSockets.values()) {
-			socket.destroy();
-		}
-		server.close();
-	};
+        this.#server.close();
+    }
 }
-
-module.exports = Server;

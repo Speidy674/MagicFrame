@@ -36,6 +36,10 @@ Table media {
     width int
     height int
     duration int [default: null]
+    
+    indexes {
+        (path, name) [unique]
+    }
 }
 
 Table scenes {

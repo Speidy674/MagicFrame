@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html class="dark">
+
+    <head>
+        <meta charset="UTF-8">
+        <title>MagicFrame - Frame</title>
+        <link rel="stylesheet" href="/css/main.css" />
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="/js/libs/mustache.min.js"></script>
+        <script src="/js/libs/lucide.min.js"></script>
+        <script src="/js/core.js" type="module" defer></script>
+        <script src="/js/frame.js" type="module" defer></script>
+    </head>
+
+    <body class="bg-black text-white antialiased">
+
+        {{>loader}}
+
+        <div id="app" class="absolute w-full h-full overflow-hidden">
+        </div>
+
+    </body>
+
+</html>

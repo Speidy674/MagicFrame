@@ -1,0 +1,12 @@
+{
+    "verbose": false,
+    "ignore": [
+        ".git",
+        "node_modules/**/node_modules",
+        "data/*",
+        "config/*",
+        "package-lock.json",
+        "package.json"
+    ],
+    "signal": "SIGINT"
+}

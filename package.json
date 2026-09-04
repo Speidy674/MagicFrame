@@ -1,14 +1,18 @@
 {
   "name": "magicframe",
-  "version": "1.0.0",
+  "version": "0.2",
   "description": "MagicFrame is a Digital Photo/Video Frame",
   "main": "js/main.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node js/main.js",
-    "dev": "nodemon js/main.js",
-    "prepare": "husky install",
-    "update": "ncu -u -x chalk"
+    "dev": "concurrently 'npm:dev:server' 'npm:dev:css'",
+    "dev:server": "nodemon js/main.js",
+    "dev:css": "npx @tailwindcss/cli -i ./src/css/main.css -o ./public/css/main.css --watch",
+    "build:css": "npx @tailwindcss/cli -i ./src/css/main.css -o ./public/css/main.css --minify",
+    "test:prettier": "npx prettier . --check",
+    "prettier": "npx prettier . --write",
+    "migration": "node js/migration.js"
   },
   "repository": {
     "type": "git",
@@ -29,32 +33,31 @@
   },
   "homepage": "https://github.com/Speidy674/MagicFrame#readme",
   "dependencies": {
-    "colors": "^1.4.0",
-    "console-stamp": "^3.1.2",
+    "@tailwindcss/cli": "^4.3.3",
     "cookie-parser": "^1.4.7",
+    "cron-translate": "^2.1.0",
     "eventemitter2": "^6.4.9",
     "express": "^5.2.1",
-    "express-ipfilter": "^1.4.0",
     "express-session": "^1.19.0",
-    "feedme": "^2.0.2",
+    "ffprobe": "^1.1.2",
+    "ffprobe-static": "^3.1.0",
     "helmet": "^8.3.0",
-    "module-alias": "^2.3.4",
+    "image-size": "^2.0.2",
+    "lucide": "^1.40.0",
     "mustache": "^4.2.0",
+    "mustache-express": "^1.3.2",
     "node-cron": "^4.6.0",
-    "node-fetch": "^3.3.2",
-    "socket.io": "^4.8.3"
+    "sequelize": "^6.37.8",
+    "socket.io": "^4.8.3",
+    "sqlite3": "^6.0.1",
+    "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
-    "electron": "^43.4.1",
-    "husky": "^9.1.7",
-    "nodemon": "^3.1.14"
-  },
-  "_moduleAliases": {
-    "logger": "js/lib/logger.js",
-    "utils": "js/utils/utils.js",
-    "filelist": "js/utils/filelist.js"
+    "concurrently": "^10.0.5",
+    "nodemon": "^3.1.14",
+    "prettier": "3.9.6"
   },
   "engines": {
-    "node": ">=12"
+    "node": ">=22"
   }
 }
