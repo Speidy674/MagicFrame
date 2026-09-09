@@ -2,6 +2,7 @@ import Frame from '../database/models/Frame.js';
 import FrameSetting from '../database/models/FrameSetting.js';
 import Media from '../database/models/Media.js';
 import FrameMode from '../enums/FrameMode.js';
+import FrameStatus from '../enums/FrameStatus.js';
 import BaseRouter from './BaseRouter.js';
 import path from 'path';
 
@@ -12,6 +13,8 @@ export default class FrameRouter extends BaseRouter {
 
     initRoutes() {
         this.router.get('/', this.list.bind(this));
+        this.router.get('/count', this.count.bind(this));
+
         this.router.get('/:id', this.info.bind(this));
         this.router.get('/:id/setting', this.setting.bind(this));
 
@@ -45,6 +48,24 @@ export default class FrameRouter extends BaseRouter {
                 total_pages: totalPages,
             },
         });
+    }
+
+    async count(req, res) {
+        const total = await Frame.count();
+        const offline = await Frame.count({
+            where: { status: FrameStatus.OFFLINE.value },
+        });
+        const online = await Frame.count({
+            where: { status: FrameStatus.ONLINE.value },
+        });
+
+        const out = {
+            total,
+            offline,
+            online,
+        };
+
+        res.status(200).json(out);
     }
 
     async info(req, res) {

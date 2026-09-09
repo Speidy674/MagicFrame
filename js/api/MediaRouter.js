@@ -5,6 +5,7 @@ import path from 'path';
 export default class MediaRouter extends BaseRouter {
     initRoutes() {
         this.router.get('/', this.list.bind(this));
+        this.router.get('/count', this.count.bind(this));
         this.router.get('/:id', this.file.bind(this));
         this.router.get('/:id/info', this.info.bind(this));
     }
@@ -30,6 +31,22 @@ export default class MediaRouter extends BaseRouter {
                 total_pages: totalPages,
             },
         });
+    }
+
+    async count(req, res) {
+        const total = await Media.count();
+        const countTypes = await Media.count({ group: ['type'] });
+
+        const out = {
+            total,
+            types: {},
+        };
+
+        countTypes.forEach((element) => {
+            out.types[element.type] = element.count;
+        });
+
+        res.status(200).json(out);
     }
 
     async file(req, res) {
