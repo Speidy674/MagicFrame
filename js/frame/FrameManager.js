@@ -27,6 +27,10 @@ export default class FrameManager {
         this.initRoutes();
 
         this.initSocketListener();
+
+        Frame.afterSave(async (frame, sequelize) => {
+            this.dashboardFrameUpdate(frame.id);
+        });
     }
 
     initRoutes() {
@@ -99,7 +103,7 @@ export default class FrameManager {
         });
 
         if (frame) {
-            frame.update({
+            await frame.update({
                 lastseen: Date.now(),
                 status: FrameStatus.OFFLINE.value,
             });
@@ -227,5 +231,11 @@ export default class FrameManager {
             OpCodes.FRAME_SETTINGS.value,
             frameSetting
         );
+    }
+
+    dashboardFrameUpdate(frameId) {
+        this.#socket.sendTo('dashboards', OpCodes.FRAME_UPDATED.value, {
+            id: frameId,
+        });
     }
 }
