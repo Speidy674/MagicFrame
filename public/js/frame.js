@@ -1,5 +1,6 @@
 import loader from '/js/utils/loader.js';
 import template from '/js/utils/template.js';
+import ConnectionManager from '/js/utils/connectionManager.js';
 import OpCodesIm from '/js/enums/OpCodes.js';
 
 /** @typedef {import("../../js/enums/OpCodes.js").OpCodesType} OpCodesType */
@@ -8,7 +9,7 @@ import OpCodesIm from '/js/enums/OpCodes.js';
 const OpCodes = OpCodesIm;
 
 class Frame {
-    #isConnected = false;
+    connectionManager;
     #authenticated = false;
 
     settings = null;
@@ -21,122 +22,97 @@ class Frame {
     };
 
     constructor() {
+        this.connectionManager = new ConnectionManager();
+        this.#handleSocketListener();
+
         loader.show();
         this.#connect();
         this.authenticate();
     }
 
     #connect() {
-        if (this.socket) {
-            this.socket.disconnect();
-            this.socket = null;
-            this.#isConnected = false;
-            this.#authenticated = false;
-        }
-        this.socket = new io();
-
-        this.#handleListiner();
+        this.#authenticated = false;
+        this.connectionManager.connect();
     }
 
-    #handleListiner() {
-        this.socket.on('connect', () => {
-            console.log(
-                '[Socket]',
-                `[${new Date().toLocaleString()}]`,
-                'connect'
-            );
-
-            this.#isConnected = true;
-
+    #handleSocketListener() {
+        this.connectionManager.on('socket:connect', () => {
             this.authenticate();
         });
 
-        this.socket.on('connect_error', (err) => {
-            console.log(
-                '[Socket]',
-                `[${new Date().toLocaleString()}]`,
-                'connect_error: ' + err
-            );
+        this.connectionManager.on('socket:connect_error', (err) => {
             this.reset(true);
         });
 
-        this.socket.on('disconnect', (err) => {
-            console.log(
-                '[Socket]',
-                `[${new Date().toLocaleString()}]`,
-                'disconnect: ' + err
-            );
+        this.connectionManager.on('socket:disconnect', (err) => {
             this.reset(true);
         });
 
-        this.socket.io.on('reconnect', () => {
-            console.log(
-                '[Socket]',
-                `[${new Date().toLocaleString()}]`,
-                'reconnect'
-            );
-        });
+        this.connectionManager.on(
+            OpCodes.FRAME_REGISTER.value,
+            ({ id: id }) => {
+                this.id = id;
+                this.authenticate();
+            }
+        );
 
-        this.socket.onAny((eventName, ...data) => {
-            console.debug('[Socket]', `Message [${eventName}]`, ...data);
-        });
-
-        this.socket.on(OpCodes.FRAME_REGISTER.value, ({ id: id }) => {
-            this.id = id;
-            this.authenticate();
-        });
-
-        this.socket.on(OpCodes.FRAME_LOGIN.value, () => {
+        this.connectionManager.on(OpCodes.FRAME_LOGIN.value, () => {
             this.#authenticated = true;
         });
 
-        this.socket.on(OpCodes.FRAME_LOGIN_ERROR.value, (err) => {
-            console.debug('[Socket]', 'Login Error:', err);
-            this.socket.disconnect();
+        this.connectionManager.on(OpCodes.FRAME_LOGIN_ERROR.value, (err) => {
+            console.debug('[Frame]', 'Login Error:', err);
+            this.connectionManager.socket.disconnect();
         });
 
-        this.socket.on(OpCodes.FRAME_SETTINGS.value, (settings) => {
+        this.connectionManager.on(OpCodes.FRAME_SETTINGS.value, (settings) => {
             this.settings = settings;
         });
 
-        this.socket.on(OpCodes.FRAME_ID_CHANGE.value, ({ id: id }) => {
-            this.id = id;
-            window.location.reload();
-        });
-
-        this.socket.on(OpCodes.FRAME_INFO.value, async ({ method: method }) => {
-            if (method === 'show') {
-                this.removeFrames();
-                if (document.querySelector('#frameInfos'))
-                    document.querySelector('#frameInfos').remove();
-                const frameInfoHtml = await template.load('frame.info', {
-                    frame: {
-                        id: this.id,
-                        width: window.innerWidth,
-                        height: window.innerHeight,
-                    },
-                });
-
-                document.querySelector('body').innerHTML += frameInfoHtml;
-                loader.hide();
-            } else {
-                if (!document.querySelector('#frameInfos')) return;
-
-                document.querySelector('#frameInfos').remove();
+        this.connectionManager.on(
+            OpCodes.FRAME_ID_CHANGE.value,
+            ({ id: id }) => {
+                this.id = id;
+                window.location.reload();
             }
-        });
+        );
 
-        this.socket.on(
+        this.connectionManager.on(
+            OpCodes.FRAME_INFO.value,
+            async ({ method: method }) => {
+                if (method === 'show') {
+                    this.removeFrameItems();
+                    if (document.querySelector('#frameInfos'))
+                        document.querySelector('#frameInfos').remove();
+                    const frameInfoHtml = await template.load('frame.info', {
+                        frame: {
+                            id: this.id,
+                            width: window.innerWidth,
+                            height: window.innerHeight,
+                        },
+                    });
+
+                    document.querySelector('body').innerHTML += frameInfoHtml;
+                    loader.hide();
+                } else {
+                    if (!document.querySelector('#frameInfos')) return;
+
+                    document.querySelector('#frameInfos').remove();
+                }
+            }
+        );
+
+        this.connectionManager.on(
             OpCodes.FRAME_PLAY.value,
             async ({ ref: ref, id: id, data: data }) => {
-                console.log('[Socket]', 'Ref:', ref, 'ID:', id, 'Data:', data);
+                console.log('[Frame]', 'Ref:', ref, 'ID:', id, 'Data:', data);
 
                 if (
                     this.playInfo.ref === ref &&
                     this.playInfo.id === id &&
                     JSON.stringify(this.playInfo.data) === JSON.stringify(data)
                 ) {
-                    console.log('[Socket]', 'already playing');
+                    console.log('[Frame]', 'already playing');
                     return;
                 }
 
@@ -181,10 +157,6 @@ class Frame {
                 loader.hide();
             }
         );
-
-        this.socket.on(OpCodes.RELOAD.value, () => {
-            window.location.reload();
-        });
     }
 
     loadVid(id) {
@@ -255,15 +227,14 @@ class Frame {
     reset(disconnected = false) {
         loader.show();
 
-        this.removeFrames();
+        this.removeFrameItems();
 
         if (disconnected) {
-            this.#isConnected = false;
             this.#authenticated = false;
         }
     }
 
-    removeFrames() {
+    removeFrameItems() {
         this.playInfo = {
             ref: null,
             id: null,
@@ -276,7 +247,7 @@ class Frame {
     }
 
     authenticate() {
-        if (!this.#isConnected) return;
+        if (!this.connectionManager.isConnected) return;
 
         if (this.#authenticated) return;
 
@@ -288,13 +259,13 @@ class Frame {
     }
 
     register() {
-        if (!this.#isConnected) return;
-        this.socket.emit(OpCodes.FRAME_REGISTER.value);
+        if (!this.connectionManager.isConnected) return;
+        this.connectionManager.emit(OpCodes.FRAME_REGISTER.value);
     }
 
     login() {
-        if (!this.#isConnected) return;
-        this.socket.emit(OpCodes.FRAME_LOGIN.value, { id: this.id });
+        if (!this.connectionManager.isConnected) return;
+        this.connectionManager.emit(OpCodes.FRAME_LOGIN.value, { id: this.id });
     }
 
     get id() {
