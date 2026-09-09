@@ -34,15 +34,13 @@ export default class pagination {
     }
 
     static async renderBar(
+        pageCount,
         totalCount,
         currentPage,
         totalPage,
         barContainerId = 'paginationBar'
     ) {
         const paginationData = {
-            from: null,
-            to: null,
-            total: totalCount,
             pages: this.paginationNumbers(currentPage, totalPage),
             hasPreviousPage: currentPage > 1,
             hasNextPage: currentPage < totalPage,

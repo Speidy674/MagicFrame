@@ -57,9 +57,10 @@ class Dashboard extends BaseDashboard {
         const pageInfo = await pageInfoRes.json();
 
         const paginationBarHtml = await pagination.renderBar(
+            pageInfo.data.length,
             pageInfo.pagination.total_count,
             pageInfo.pagination.current_page,
-            pageInfo.pagination.total_pages
+            pageInfo.pagination.total_pages,
         );
 
         document.querySelector('#paginationBar').outerHTML = paginationBarHtml;
