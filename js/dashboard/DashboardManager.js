@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import Media from '../database/models/Media.js';
 import Frame from '../database/models/Frame.js';
+import OpCodes from '../enums/OpCodes.js';
+import FrameStatus from '../enums/FrameStatus.js';
 
 export default class DashboardManager {
     #config;
@@ -22,21 +24,61 @@ export default class DashboardManager {
         this.initSocketListener();
     }
 
+    getSidebar(req) {
+        return {
+            navigationActive: function () {
+                return this.url == req.originalUrl;
+            },
+            navigation: [
+                {
+                    name: 'Core',
+                    icon: 'settings',
+                    items: [
+                        {
+                            name: 'Frames',
+                            icon: 'gallery-horizontal-end',
+                            url: '/dashboard/frames',
+                        },
+                        {
+                            name: 'Media',
+                            icon: 'images',
+                            url: '/dashboard/media',
+                        },
+                        {
+                            name: 'Scenes',
+                            icon: 'sticky-notes',
+                            url: '/dashboard/scenes',
+                        },
+                        {
+                            name: 'Playlists',
+                            icon: 'list-video',
+                            url: '/dashboard/playlists',
+                        },
+                        {
+                            name: 'Crons',
+                            icon: 'monitor-cog',
+                            url: '/dashboard/crons',
+                        },
+                    ],
+                },
+            ],
+        };
+    }
+
     initRoutes() {
         this.router.get('/', async (req, res) => {
             res.render('dashboard/main', {
                 version: global.version,
                 pageTitle: 'Übersicht',
-                frameCount: await Frame.count(),
-                mediaCount: await Media.count(),
-                sceneCount: 'not impl',
-                playlistCount: 'not impl',
+                sideBar: this.getSidebar(req),
             });
         });
+
         this.router.get('/frames', async (req, res) => {
             res.render('dashboard/frames', {
                 version: global.version,
                 pageTitle: 'Frames',
+                sideBar: this.getSidebar(req),
             });
         });
 
@@ -45,5 +87,11 @@ export default class DashboardManager {
         });
     }
 
-    initSocketListener() {}
+    initSocketListener() {
+        this.#socket.on(OpCodes.DASHBOARD_LOGIN.value, async (socket) => {
+            socket.mfInfos.dashboard = true;
+            socket.join('dashboards');
+            socket.emit(OpCodes.DASHBOARD_LOGIN.value);
+        });
+    }
 }
