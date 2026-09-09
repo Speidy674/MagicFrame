@@ -1,6 +1,6 @@
-export function timeAgo(input, lang = 'de') {
-    const date = (input instanceof Date) ? input : new Date(input);
-    const formatter = new Intl.RelativeTimeFormat('de');
+export function humanReadable(input, lang = 'de') {
+    const date = input instanceof Date ? input : new Date(input);
+    const formatter = new Intl.RelativeTimeFormat('de', { numeric: 'auto' });
     const ranges = [
         ['years', 3600 * 24 * 365],
         ['months', 3600 * 24 * 30],
@@ -18,4 +18,6 @@ export function timeAgo(input, lang = 'de') {
             return formatter.format(Math.round(delta), rangeType);
         }
     }
+
+    return formatter.format(0, 'second');
 }
