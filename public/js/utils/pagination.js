@@ -53,9 +53,6 @@ export default class pagination {
                 return !isNaN(this);
             },
         };
-
-        console.log(paginationData)
-
         const barHtml = await template.load('paginationBar', {
             barContainerId: barContainerId,
             pagination: paginationData,
@@ -67,7 +64,7 @@ export default class pagination {
     static async onBtn(callBack, barContainerId = 'paginationBar') {
         const clickEvent = (event) => {
             if (!event.currentTarget.matches('[data-pagination-btn]')) return;
-            callBack(event.currentTarget.dataset.paginationBtn, event)
+            callBack(event.currentTarget.dataset.paginationBtn, event);
         };
         document
             .querySelectorAll('#' + barContainerId + ' [data-pagination-btn]')
