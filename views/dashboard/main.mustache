@@ -25,14 +25,22 @@
                 {{>dashboard.navigation}}
 
                 <main class="grow">
-                    <div class="grid grid-cols-4 gap-4 p-2">
+                    <div class="grid grid-cols-4 gap-8 py-8 px-2">
                         <div
-                            class="bg-foreground/8 border border-accent/60 shadow-xl shadow-accent/15 min-h-22 p-3 rounded-xl">
+                            class="bg-foreground/8 border border-accent/60 shadow-xl shadow-accent/15 min-h-22 p-3 rounded-xl col-span-2">
                             <div class="w-full font-bold inline-flex gap-2 text-muted">
                                 <i data-lucide="gallery-horizontal-end"></i>
                                 Frames
                             </div>
-                            {{frameCount}}
+                            <span id="frameCount"></span>
+                        </div>
+                        <div
+                            class="bg-foreground/8 border border-accent/60 shadow-xl shadow-accent/15 min-h-22 p-3 rounded-xl col-span-2">
+                            <div class="w-full font-bold inline-flex gap-2 text-muted">
+                                <i data-lucide="gallery-horizontal-end"></i>
+                                Frames Online
+                            </div>
+                            <span id="frameOnlineCount"></span>
                         </div>
                         <div
                             class="bg-foreground/8 border border-accent/60 shadow-xl shadow-accent/15 min-h-22 p-3 rounded-xl">
@@ -40,7 +48,7 @@
                                 <i data-lucide="images"></i>
                                 Media
                             </div>
-                            {{mediaCount}}
+                            <span id="mediaCount"></span>
                         </div>
                         <div
                             class="bg-foreground/8 border border-accent/60 shadow-xl shadow-accent/15 min-h-22 p-3 rounded-xl">
@@ -48,7 +56,7 @@
                                 <i data-lucide="sticky-notes"></i>
                                 Scenes
                             </div>
-                            {{sceneCount}}
+                            <span id="sceneCount"></span>
                         </div>
                         <div
                             class="bg-foreground/8 border border-accent/60 shadow-xl shadow-accent/15 min-h-22 p-3 rounded-xl">
@@ -56,7 +64,15 @@
                                 <i data-lucide="list-video"></i>
                                 Playlists
                             </div>
-                            {{playlistCount}}
+                            <span id="playlistCount"></span>
+                        </div>
+                        <div
+                            class="bg-foreground/8 border border-accent/60 shadow-xl shadow-accent/15 min-h-22 p-3 rounded-xl">
+                            <div class="w-full font-bold inline-flex gap-2 text-muted">
+                                <i data-lucide="monitor-cog"></i>
+                                Crons
+                            </div>
+                            <span id="cronCounts"></span>
                         </div>
                     </div>
                 </main>

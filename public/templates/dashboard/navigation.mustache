@@ -1,36 +1,19 @@
 <div class="border-e border-primary overflow-auto w-70">
     <ul class="flex flex-col gap-3 pe-2">
-        <div class="italic text-muted pb-2 border-b border-secondary flex grow gap-1">
-            <i data-lucide="settings"></i>
-            Core
-        </div>
-        <li>
-            <a active href="/dashboard/frames"
-                class="items-center text-primary hover:border-b border-primary active:border-accent active:text-accent pb-1 pe-2 flex grow gap-1">
-                <i data-lucide="gallery-horizontal-end"></i>
-                Frames
-            </a>
-        </li>
-        <li>
-            <a href="/dashboard/media"
-                class="items-center text-primary hover:border-b border-primary active:border-accent active:text-accent pb-1 pe-2 flex grow gap-1">
-                <i data-lucide="images"></i>
-                Media
-            </a>
-        </li>
-        <li>
-            <a href="/dashboard/scenes"
-                class="items-center text-primary hover:border-b border-primary active:border-accent active:text-accent pb-1 pe-2 flex grow gap-1">
-                <i data-lucide="sticky-notes"></i>
-                Scenes
-            </a>
-        </li>
-        <li>
-            <a href="/dashboard/playlists"
-                class="items-center text-primary hover:border-b border-primary active:border-accent active:text-accent pb-1 pe-2 flex grow gap-1">
-                <i data-lucide="list-video"></i>
-                Playlists
-            </a>
-        </li>
+        {{#sideBar.navigation}}
+            <div class="italic text-muted pb-2 border-b border-secondary flex grow gap-1">
+                {{#icon}} <i data-lucide="{{icon}}"></i> {{/icon}}
+                {{name}}
+            </div>
+            {{#items}}
+                <li>
+                    <a active href="{{url}}"
+                        class="items-center text-primary hover:border-b border-primary active:border-accent active:text-accent pb-1 pe-2 flex grow gap-1 {{#sideBar.navigationActive}} border-accent! text-accent! {{/sideBar.navigationActive}}">
+                        {{#icon}} <i data-lucide="{{icon}}"></i> {{/icon}}
+                        {{name}}
+                    </a>
+                </li>
+            {{/items}}
+        {{/sideBar.navigation}}
     </ul>
 </div>
