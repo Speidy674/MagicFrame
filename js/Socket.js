@@ -1,16 +1,17 @@
 import { Server as SocketIOServer } from 'socket.io';
+import EventEmitter from 'node:events';
 
 export default class Socket {
     #server;
     #io;
     #sockets = new Set();
-    #events = new Map();
-    #connectHandler;
-    #disconnectHandler;
+    #eventEmitter;
 
     constructor(config, _server) {
         console.log('[Socket]', 'init');
         this.#server = _server;
+
+        this.#eventEmitter = new EventEmitter();
 
         this.#io = new SocketIOServer(this.#server.server, {
             cors: {
@@ -50,52 +51,28 @@ export default class Socket {
     }
 
     #handleConnect(socket) {
-        const handler = this.#connectHandler;
-
-        if (!handler) {
-            return;
-        }
-
-        handler(socket);
+        this.#eventEmitter.emit('socket:connected', socket);
     }
 
     #handleDisconnect(socket) {
-        const handler = this.#disconnectHandler;
-
-        if (!handler) {
-            return;
-        }
-
-        handler(socket);
+        this.#eventEmitter.emit('socket:disconnected', socket);
     }
 
     #handleEvent(socket, eventName, ...data) {
-        if (!this.#events.has(eventName)) {
-            console.warn('[Socket]', `Unknown Event '${eventName}'`);
-            return;
-        }
-
-        const eventHandler = this.#events.get(eventName);
-
-        if (!eventHandler) {
-            console.warn('[Socket]', `Event '${eventName}' has no Handler`);
-            return;
-        }
-
-        eventHandler(socket, ...data);
+        this.#eventEmitter.emit(eventName, socket, ...data);
     }
 
     connected(handler) {
-        this.#connectHandler = handler;
+        this.#eventEmitter.on('socket:connected', handler);
     }
 
     disconnected(handler) {
-        this.#disconnectHandler = handler;
+        this.#eventEmitter.on('socket:disconnected', handler);
     }
 
     on(eventName, handler) {
         console.debug('[Socket]', `Register Handler for Event '${eventName}'`);
-        this.#events.set(eventName, handler);
+        this.#eventEmitter.on(eventName, handler);
     }
 
     emit(eventName, ...data) {
@@ -111,12 +88,12 @@ export default class Socket {
         socket.emit(eventName, ...data);
     }
 
-    sendTo(socketId, eventName, ...data) {
+    sendTo(to, eventName, ...data) {
         console.debug(
             '[Socket]',
-            `Emit Event '${eventName}' to socket '${socketId}'`
+            `Emit Event '${eventName}' to socket/room '${to}'`
         );
-        this.#io.to(socketId).emit(eventName, ...data);
+        this.#io.to(to).emit(eventName, ...data);
     }
 
     stop() {
