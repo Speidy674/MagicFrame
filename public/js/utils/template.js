@@ -11,16 +11,19 @@ class Template {
     async load(key, ...data) {
         let template = await this.#getTemplate(key);
 
-        let tmp = document.createElement('div');
+        let tmpRoot = document.createElement('div');
+        let tmpTemplate = document.createElement('template');
 
-        tmp.innerHTML = Mustache.render(template, ...data);
+        tmpRoot.appendChild(tmpTemplate);
+
+        tmpTemplate.innerHTML = Mustache.render(template, ...data);
 
         lucide.createIcons({
-            root: tmp,
-            inTemplates: true,
+            root: tmpRoot,
+            inTemplates: true
         });
 
-        return tmp.innerHTML;
+        return tmpTemplate.innerHTML;
     }
 
     async #getTemplate(key) {
