@@ -22,10 +22,11 @@ class Frame {
     };
 
     constructor() {
+        loader.show();
+
         this.connectionManager = new ConnectionManager();
         this.#handleSocketListener();
 
-        loader.show();
         this.#connect();
         this.authenticate();
     }
@@ -136,8 +137,8 @@ class Frame {
                                     '[Frame]',
                                     `[${new Date().toLocaleString()}]`,
                                     'type ' +
-                                        mediaInfo.type +
-                                        ' is not supported'
+                                    mediaInfo.type +
+                                    ' is not supported'
                                 );
                                 break;
                         }

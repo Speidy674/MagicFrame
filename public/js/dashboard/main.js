@@ -17,8 +17,6 @@ class Dashboard extends BaseDashboard {
         this.loadSceneCount();
         this.loadPlaylistCount();
         this.loadCronCount();
-
-        loader.hide();
     }
 
     async loadFrameCounts() {
@@ -51,9 +49,9 @@ class Dashboard extends BaseDashboard {
         totalContainer.textContent = count.total;
     }
 
-    async loadSceneCount() {}
+    async loadSceneCount() { }
 
-    async loadPlaylistCount() {}
+    async loadPlaylistCount() { }
 
     async loadCronCount() {
         const totalContainer = document.querySelector('#cronCounts');

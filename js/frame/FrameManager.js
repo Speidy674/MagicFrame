@@ -31,6 +31,10 @@ export default class FrameManager {
         Frame.afterSave(async (frame, sequelize) => {
             this.dashboardFrameUpdate(frame.id);
         });
+
+        FrameSetting.afterSave(async (frameSetting, sequelize) => {
+            this.dashboardFrameUpdate(frameSetting.frameId);
+        });
     }
 
     initRoutes() {
@@ -215,16 +219,18 @@ export default class FrameManager {
         }
     }
 
-    async sendFrameSettings(frameId) {
+    async sendFrameSettings(frameId, frameSetting) {
         let frame = await Frame.findByPk(frameId);
 
         if (!frame) return null;
 
-        const [frameSetting] = await FrameSetting.findOrCreate({
-            where: {
-                frame_id: frameId,
-            },
-        });
+        if (!frameSetting) {
+            [frameSetting] = await FrameSetting.findOrCreate({
+                where: {
+                    frame_id: frameId,
+                },
+            });
+        }
 
         this.#socket.sendTo(
             'frame:' + frameId,

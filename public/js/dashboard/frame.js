@@ -37,7 +37,6 @@ class Dashboard extends BaseDashboard {
     constructor() {
         super();
         this.loadPage();
-        loader.hide();
     }
 
     handlePageSocketListener() {
