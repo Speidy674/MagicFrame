@@ -112,6 +112,11 @@ class Dashboard extends BaseDashboard {
     }
 
     async getMediaTableItem(media) {
+        let info = `${media.width} x ${media.height}`;
+
+        if (media.duration) {
+            info += ` - ${new Date(media.duration * 1000).toISOString().substring(11, 19)} Length`;
+        }
 
         return await template.load('dashboard.media.tableitem', {
             id: media.id,
@@ -119,6 +124,7 @@ class Dashboard extends BaseDashboard {
             type: media.type,
             mimeType: media.mime_type,
             fileSize: formatBytes(media.size),
+            info: info
         });
     }
 
