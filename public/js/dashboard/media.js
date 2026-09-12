@@ -2,10 +2,8 @@ import loader from '/js/utils/loader.js';
 import template from '/js/utils/template.js';
 import BaseDashboard from '/js/dashboard/base.js';
 import OpCodesIm from '/js/enums/OpCodes.js';
-import FrameModes from '/js/enums/FrameMode.js';
 import pagination from '/js/utils/pagination.js';
-import FrameStatus from '../../../js/enums/FrameStatus.js';
-import { humanReadable } from '/js/utils/utils.js';
+import { humanReadable, formatBytes } from '/js/utils/utils.js';
 
 /** @typedef {import("../../../js/enums/OpCodes.js").OpCodesType} OpCodesType */
 
@@ -20,24 +18,6 @@ class Dashboard extends BaseDashboard {
     page;
     limit;
 
-    statusColorMap = {
-        default: {
-            bg: 'bg-primary/10',
-            text: 'text-primary',
-            inset: 'inset-primary/50',
-        },
-        [FrameStatus.ONLINE.value]: {
-            bg: 'bg-green-500/10',
-            text: 'text-green-500',
-            inset: 'inset-green-500/50',
-        },
-        [FrameStatus.OFFLINE.value]: {
-            bg: 'bg-red-500/10',
-            text: 'text-red-500',
-            inset: 'inset-red-500/50',
-        },
-    };
-
     constructor() {
         super();
 
@@ -51,12 +31,14 @@ class Dashboard extends BaseDashboard {
     }
 
     handlePageSocketListener() {
+        /*
         this.connectionManager.on(
             OpCodes.FRAME_UPDATED.value,
             ({ id: frameId }) => {
                 this.updateFrame(frameId);
             }
         );
+        */
     }
 
     handleEventListener() {
@@ -88,7 +70,7 @@ class Dashboard extends BaseDashboard {
 
 
         const pageInfoRes = await fetch(
-            `/api/frame?page=${this.page}&limit=${this.limit}`
+            `/api/media?page=${this.page}&limit=${this.limit}`
         );
         const pageInfo = await pageInfoRes.json();
 
@@ -103,69 +85,40 @@ class Dashboard extends BaseDashboard {
 
         pagination.onBtn(this.onPageBtn.bind(this));
 
-        const frameContaier = document.querySelector('#frameContaier');
-        frameContaier.innerHTML = '';
+        const mediaContaier = document.querySelector('#mediaContaier');
+        mediaContaier.innerHTML = '';
 
         for (const frame of pageInfo.data) {
-            frameContaier.innerHTML += await this.getFrameTableItem(frame);
+            mediaContaier.innerHTML += await this.getMediaTableItem(frame);
         }
     }
 
-    async updateFrame(frameId) {
-        const frameItemContainer = document.querySelector(
-            '#frameTableItem_' + frameId
+    async updateMediaItem(mediaId) {
+        const mediaItemContainer = document.querySelector(
+            '#mediaTableItem_' + mediaId
         );
 
-        if (!frameItemContainer) {
+        if (!mediaItemContainer) {
             this.loadPage();
             return;
         }
 
-        const frameInfoRes = await fetch(`/api/frame/${frameId}`);
-        const frameInfo = await frameInfoRes.json();
+        const mediaInfoRes = await fetch(`/api/frame/${mediaId}/info`);
+        const mediaInfo = await mediaInfoRes.json();
 
-        const frameItemHtml = await this.getFrameTableItem(frameInfo);
+        const mediaTableItemHtml = await this.getMediaTableItem(mediaInfo);
 
-        frameItemContainer.outerHTML = frameItemHtml;
+        mediaItemContainer.outerHTML = mediaTableItemHtml;
     }
 
-    async getFrameTableItem(frame) {
-        let showing = '';
+    async getMediaTableItem(media) {
 
-        if (frame.showing_ref) {
-            showing += frame.showing_ref;
-        }
-
-        if (frame.showing_id) {
-            showing += ' - ID: ' + frame.showing_id;
-        }
-
-        if (frame.showing_data) {
-            showing += ' - DATA: ' + frame.showing_data;
-        }
-
-        let source = '';
-        let controller = '';
-
-        const status = FrameStatus.tryFromValue(frame.status);
-
-        return await template.load('dashboard.frame.tableitem', {
-            id: frame.id,
-            mode: FrameModes.tryFromValue(frame.mode).name,
-            status: status.name,
-            lastSeen:
-                status.value === FrameStatus.OFFLINE.value
-                    ? humanReadable(frame.lastseen)
-                    : '',
-            showing,
-            showingUpdate: frame.showing_updated
-                ? humanReadable(frame.showing_updated)
-                : '',
-            source,
-            controller,
-            statusColor:
-                this.statusColorMap[status.value] ??
-                this.statusColorMap['default'],
+        return await template.load('dashboard.media.tableitem', {
+            id: media.id,
+            name: media.name,
+            type: media.type,
+            mimeType: media.mime_type,
+            fileSize: formatBytes(media.size),
         });
     }
 

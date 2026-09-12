@@ -3,13 +3,13 @@
 
     <head>
         <meta charset="UTF-8">
-        <title>MagicFrame - Dashboard - Frames</title>
+        <title>MagicFrame - Dashboard - Media</title>
         <link rel="stylesheet" href="/css/main.css" />
         <script src="/socket.io/socket.io.js"></script>
         <script src="/js/libs/mustache.min.js"></script>
         <script src="/js/libs/lucide.min.js"></script>
         <script src="/js/core.js" type="module" defer></script>
-        <script src="/js/dashboard/frame.js" type="module" defer></script>
+        <script src="/js/dashboard/media.js" type="module" defer></script>
     </head>
 
     <body class="bg-background text-foreground antialiased">
@@ -29,17 +29,14 @@
                         <table
                             class="table-auto text-center items-center border-spacing-y-3.75 border-separate space-y-6">
                             <thead class="bg-accent/20">
-                                <th class="rounded-l-xl p-1">Status</th>
-                                <th class="p-1">Frame</th>
-                                <th class="p-1">Mode</th>
-                                <th class="p-1">Showing</th>
-                                <th class="p-1">Source</th>
-                                <th class="p-1">Controller</th>
-                                <th class="p-1">Showing Updated</th>
-                                <th class="p-1">Last Seen</th>
+                                <th class="rounded-l-xl p-1">Name</th>
+                                <th class="p-1">Type</th>
+                                <th class="p-1">Mime Type</th>
+                                <th class="p-1">File Size</th>
+                                <th class="p-1">Info</th>
                                 <th class="rounded-r-xl p-1">Action</th>
                             </thead>
-                            <tbody id="frameContaier" class="align-middle">
+                            <tbody id="mediaContaier" class="align-middle">
                             </tbody>
                         </table>
                         <div id="paginationBar"></div>

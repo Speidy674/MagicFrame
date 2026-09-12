@@ -1,0 +1,28 @@
+<tr id="frameTableItem_{{id}}" class="h-12 bg-secondary/10 rounded-[20px]">
+    <td class="rounded-l-xl p-1">
+        <span class="inline-flex items-center rounded-md {{statusColor.bg}} px-2 py-1 text-xs {{statusColor.text}}
+    inset-ring {{inset}} font-medium">
+            {{status}}
+        </span>
+    </td>
+    <td class="p-1">{{id}}</td>
+    <td class="p-1">
+        <span
+            class="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs text-primary inset-ring inset-primary/50 font-medium">
+            {{mode}}
+        </span>
+    </td>
+    <td class="p-1">{{showing}}</td>
+    <td class="p-1">{{source}}</td>
+    <td class="p-1">{{controller}}</td>
+    <td class="p-1"><span class="text-muted italic">Update: {{showingUpdate}}</span></td>
+    <td class="p-1">{{lastSeen}}</td>
+    <td class="rounded-r-xl p-1">
+        <span class="inline-flex items-center">
+            <a href="/dashboard/frames/{{id}}">
+                <i data-lucide="eye"></i>
+            </a>
+        </span>
+
+    </td>
+</tr>

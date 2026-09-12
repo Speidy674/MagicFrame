@@ -82,6 +82,14 @@ export default class DashboardManager {
             });
         });
 
+        this.router.get('/media', async (req, res) => {
+            res.render('dashboard/media', {
+                version: global.version,
+                pageTitle: 'Media',
+                sideBar: this.getSidebar(req),
+            });
+        });
+
         this.router.get('/{*splat}', async (req, res) => {
             res.sendStatus(404);
         });

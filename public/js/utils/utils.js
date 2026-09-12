@@ -21,3 +21,19 @@ export function humanReadable(input, lang = 'de') {
 
     return formatter.format(0, 'second');
 }
+
+const sizes = ['Bytes', 'KiB', 'MiB', 'GiB', 'TiB'];
+
+export function formatBytes(input, decimals = 2) {
+    if (input === 0) return `0 ${sizes[0]}`;
+
+    const base = 1024;
+
+    const _decimals = decimals < 0 ? 0 : decimals;
+
+    const sizesIndex = Math.floor(Math.log(input) / Math.log(base));
+
+    const finalSize = input / Math.pow(base, sizesIndex)
+
+    return `${finalSize.toFixed(_decimals)} ${sizes[sizesIndex]}`;
+}
