@@ -17,7 +17,7 @@ export default class MediaManager {
     #scanningFoundFiles = [];
 
     #scannigRunning = 0;
-    #scannigMaxRunning = 10;
+    #scannigMaxRunning = 20;
 
     #imageFormat = ['.jpg', '.png', '.gif', '.jpeg', '.webp', '.svg'];
     #videoFormat = ['.mp4'];
