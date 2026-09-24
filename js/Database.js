@@ -18,11 +18,17 @@ export default class Database {
             dialect: 'sqlite',
             storage: path.resolve(global.root_path, 'data/database.sqlite'),
             logging: (msg, dbConfig) => this.#dbLogger(msg, dbConfig),
-            pool: {
-                max: 20,
-                min: 0,
-            },
+            transactionType: 'IMMEDIATE',
         });
+
+        this.#sequelize.afterConnect((connection, config) => {
+            connection.query("PRAGMA journal_mode = WAL;");
+            connection.query("PRAGMA synchronous = NORMAL;");
+            connection.query("PRAGMA journal_size_limit = 67108864;");
+            connection.query("PRAGMA mmap_size = 134217728 * 2;");
+            connection.query("PRAGMA cache_size = 2000;");
+            connection.query("PRAGMA busy_timeout = 60000;");
+        })
     }
 
     #dbLogger(msg, dbConfig) {
@@ -41,6 +47,7 @@ export default class Database {
     async testConnection() {
         try {
             await this.#sequelize.authenticate();
+
         } catch (error) {
             throw 'Database Error';
         }
