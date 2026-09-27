@@ -9,7 +9,6 @@
         <script src="/js/libs/mustache.min.js"></script>
         <script src="/js/libs/lucide.min.js"></script>
         <script src="/js/core.js" type="module" defer></script>
-        <script src="/js/dashboard/frame.js" type="module" defer></script>
     </head>
 
     <body class="bg-background text-foreground antialiased">
@@ -21,8 +20,6 @@
             {{>dashboard.header}}
 
             <div class="grow flex gap-2">
-
-                {{>dashboard.navigation}}
 
                 <main class="grow">
                     <div class="flex flex-col justify-center w-full h-full text-center items-center">
@@ -39,6 +36,10 @@
                                     <p class="text-foreground text-lg mb-6">
                                         {{#__}}error.404.desc{{/__}}
                                     </p>
+                                </div>
+                                <div class="mb-8">
+                                    <a class="text-primary hover:border-b border-primary active:border-accent active:text-accent"
+                                        href="#" data-btn-back>Back</a>
                                 </div>
                             </div>
                         </div>
