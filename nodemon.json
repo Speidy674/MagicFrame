@@ -5,6 +5,7 @@
         "node_modules/**/node_modules",
         "data/*",
         "config/*",
+        "locales/*",
         "package-lock.json",
         "package.json"
     ],

@@ -31,31 +31,31 @@ export default class DashboardManager {
             },
             navigation: [
                 {
-                    name: 'Core',
+                    name: 'dashboard.navigation.group.core.name',
                     icon: 'settings',
                     items: [
                         {
-                            name: 'Frames',
+                            name: 'dashboard.navigation.group.core.items.frames',
                             icon: 'gallery-horizontal-end',
                             url: '/dashboard/frames',
                         },
                         {
-                            name: 'Media',
+                            name: 'dashboard.navigation.group.core.items.media',
                             icon: 'images',
                             url: '/dashboard/media',
                         },
                         {
-                            name: 'Scenes',
+                            name: 'dashboard.navigation.group.core.items.scenes',
                             icon: 'sticky-notes',
                             url: '/dashboard/scenes',
                         },
                         {
-                            name: 'Playlists',
+                            name: 'dashboard.navigation.group.core.items.playlists',
                             icon: 'list-video',
                             url: '/dashboard/playlists',
                         },
                         {
-                            name: 'Crons',
+                            name: 'dashboard.navigation.group.core.items.crons',
                             icon: 'monitor-cog',
                             url: '/dashboard/crons',
                         },

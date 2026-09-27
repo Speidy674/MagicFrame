@@ -1,0 +1,25 @@
+{
+    "error": {
+        "404": {
+            "title": "Not Found",
+            "code": "404",
+            "desc": "The page you're looking for was not found"
+        }
+    },
+    "dashboard": {
+        "navigation": {
+            "group": {
+                "core": {
+                    "name": "Core",
+                    "items": {
+                        "frames": "Frames",
+                        "media": "Media",
+                        "scenes": "Scenes",
+                        "playlists": "Playlists",
+                        "crons": "Crons"
+                    }
+                }
+            }
+        }
+    }
+}

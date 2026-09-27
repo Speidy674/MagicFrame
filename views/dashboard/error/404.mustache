@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html class="dark">
+
+    <head>
+        <meta charset="UTF-8">
+        <title>MagicFrame - Dashboard - {{pageTitle}}</title>
+        <link rel="stylesheet" href="/css/main.css" />
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="/js/libs/mustache.min.js"></script>
+        <script src="/js/libs/lucide.min.js"></script>
+        <script src="/js/core.js" type="module" defer></script>
+        <script src="/js/dashboard/frame.js" type="module" defer></script>
+    </head>
+
+    <body class="bg-background text-foreground antialiased">
+
+        {{>loader}}
+
+        <div class="flex flex-col m-auto min-h-svh w-[95svw] md:w-[98svw] max-w-480">
+
+            {{>dashboard.header}}
+
+            <div class="grow flex gap-2">
+
+                {{>dashboard.navigation}}
+
+                <main class="grow">
+                    <div class="flex flex-col justify-center w-full h-full text-center items-center">
+                        <div
+                            class="backdrop-blur-5 border shadow-xl shadow-accent/25 rounded-3xl border-solid border-accent p-12 max-w-2xl w-full mx-4 glow">
+                            <div class="text-center">
+                                <div class="mb-8">
+                                    <h1 class="font-lexend text-8xl font-bold text-gray-100 mb-2 tracking-tight">
+                                        {{#__}}error.404.code{{/__}}
+                                    </h1>
+                                    <div class="h-1 w-24 mx-auto bg-accent rounded-full mb-8">
+                                    </div>
+                                    <h2 class="text-3xl font-medium mb-4">{{#__}}error.404.title{{/__}}</h2>
+                                    <p class="text-foreground text-lg mb-6">
+                                        {{#__}}error.404.desc{{/__}}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+
+            {{>dashboard.footer}}
+
+        </div>
+
+    </body>
+
+</html>

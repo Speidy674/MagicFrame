@@ -3,14 +3,14 @@
         {{#sideBar.navigation}}
             <div class="italic text-muted pb-2 border-b border-secondary flex grow gap-1">
                 {{#icon}} <i data-lucide="{{icon}}"></i> {{/icon}}
-                {{name}}
+                {{#__}}{{name}}{{/__}}
             </div>
             {{#items}}
                 <li>
                     <a active href="{{url}}"
                         class="items-center text-primary hover:border-b border-primary active:border-accent active:text-accent pb-1 pe-2 flex grow gap-1 {{#sideBar.navigationActive}} border-accent! text-accent! {{/sideBar.navigationActive}}">
                         {{#icon}} <i data-lucide="{{icon}}"></i> {{/icon}}
-                        {{name}}
+                        {{#__}}{{name}}{{/__}}
                     </a>
                 </li>
             {{/items}}

@@ -9,6 +9,7 @@ import session from 'express-session';
 import mustache from 'mustache';
 import path from 'path';
 import mustacheExpress from 'mustache-express';
+import { I18n } from 'i18n';
 
 export default class Server {
     #server;
@@ -16,12 +17,15 @@ export default class Server {
     #config;
     #sessionMiddleware;
 
+    #i18n
+
     constructor(config) {
         console.log('[Server]', 'init');
         this.#config = config;
 
         this.createExpress();
         this.setupExpressViewEngine();
+        this.setupL18n();
         this.createServer();
         this.startServer();
 
@@ -77,6 +81,42 @@ export default class Server {
         this.#app.engine('mustache', engine);
         this.#app.set('view engine', 'mustache');
         this.#app.set('views', viewfolder);
+    }
+
+    setupL18n() {
+        console.debug('[Server]', 'Setup i18n');
+
+        const langfolder = path.resolve(
+            global.root_path,
+            'locales'
+        );
+
+        this.#i18n = new I18n({
+            locales: ['en', 'de'],
+            defaultLocale: 'de',
+            directory: langfolder,
+            retryInDefaultLocale: true,
+            cookie: "magicFrameLang",
+            objectNotation: true,
+            autoReload: true,
+            syncFiles: true,
+            missingKeyFn: function (local, key) {
+                console.error("[Server]", `Lang '${local} dont have key '${key}'`);
+                return key;
+            }
+        });
+        this.#app.use(this.#i18n.init);
+
+
+        this.#app.use((req, res, next) => {
+            res.locals.__ = () => {
+                return (text, render) => {
+                    const langKey = render(text)
+                    return res.__(langKey)
+                };
+            }
+            next();
+        })
     }
 
     createServer() {
