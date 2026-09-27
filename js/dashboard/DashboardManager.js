@@ -96,9 +96,13 @@ export default class DashboardManager {
         });
 
         this.router.get('/{*splat}', async (req, res) => {
-            res.status(404);
-            res.render('dashboard/error/404', this.getViewOptions(req, '404'));
+            this.sendError(req, res, 404);
         });
+    }
+
+    sendError(req, res, errorCode) {
+        res.status(errorCode);
+        res.render('dashboard/error/' + errorCode, this.getViewOptions(req, errorCode));
     }
 
     initSocketListener() {
