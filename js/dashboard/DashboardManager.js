@@ -65,33 +65,39 @@ export default class DashboardManager {
         };
     }
 
+    getViewOptions(req, title, options = {}) {
+        return {
+            version: global.version,
+            sideBar: this.getSidebar(req),
+            pageTitle: title,
+            ...options
+        }
+    }
+
     initRoutes() {
         this.router.get('/', async (req, res) => {
-            res.render('dashboard/main', {
-                version: global.version,
-                pageTitle: 'Übersicht',
-                sideBar: this.getSidebar(req),
-            });
+            res.render('dashboard/main', this.getViewOptions(req, 'Übersicht'));
         });
 
         this.router.get('/frames', async (req, res) => {
-            res.render('dashboard/frames', {
-                version: global.version,
-                pageTitle: 'Frames',
-                sideBar: this.getSidebar(req),
-            });
+            res.render('dashboard/frames/table', this.getViewOptions(req, 'Frames'));
+        });
+
+        this.router.get('/frames/:id', async (req, res) => {
+            res.render('dashboard/frames/detail', this.getViewOptions(req, 'Frame - ' + req.params.id));
         });
 
         this.router.get('/media', async (req, res) => {
-            res.render('dashboard/media', {
-                version: global.version,
-                pageTitle: 'Media',
-                sideBar: this.getSidebar(req),
-            });
+            res.render('dashboard/media/table', this.getViewOptions(req, 'Media'));
+        });
+
+        this.router.get('/media/:id', async (req, res) => {
+            res.render('dashboard/media/detail', this.getViewOptions(req, 'Media - ' + req.params.id));
         });
 
         this.router.get('/{*splat}', async (req, res) => {
-            res.sendStatus(404);
+            res.status(404);
+            res.render('dashboard/error/404', this.getViewOptions(req, '404'));
         });
     }
 
