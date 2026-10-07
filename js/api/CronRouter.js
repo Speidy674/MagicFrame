@@ -12,7 +12,28 @@ export default class CronRouter extends BaseRouter {
     }
 
     async list(req, res) {
-        res.status(200).json(this.cronManager.all());
+        let { page = 1, limit = 25 } = req.query;
+        page = parseInt(page);
+        limit = parseInt(limit);
+        if (page <= 0) page = 1;
+
+        const rows = this.cronManager.all();
+        const count = rows.length;
+
+        const dataStart = ((page - 1) * limit);
+        const dataEnd = dataStart + limit;
+
+        const totalPages = Math.ceil(count / limit);
+
+        res.status(200).json({
+            tmp: { dataStart, dataEnd },
+            data: rows.slice(dataStart, dataEnd),
+            pagination: {
+                total_count: count,
+                current_page: page,
+                total_pages: totalPages,
+            },
+        });
     }
 
     async count(req, res) {
