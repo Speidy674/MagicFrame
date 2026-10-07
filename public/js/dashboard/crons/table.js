@@ -76,7 +76,7 @@ class Dashboard extends BaseDashboard {
         }
 
         const pageInfoRes = await fetch(
-            `/api/media?page=${this.page}&limit=${this.limit}`
+            `/api/cron?page=${this.page}&limit=${this.limit}`
         );
         const pageInfo = await pageInfoRes.json();
 
@@ -91,46 +91,38 @@ class Dashboard extends BaseDashboard {
 
         pagination.onBtn(this.onPageBtn.bind(this));
 
-        const mediaContaier = document.querySelector('#mediaContaier');
-        mediaContaier.innerHTML = '';
+        const pageContainer = document.querySelector('#mediaContaier');
+        pageContainer.innerHTML = '';
 
         for (const frame of pageInfo.data) {
-            mediaContaier.innerHTML += await this.getMediaTableItem(frame);
+            pageContainer.innerHTML += await this.getTableItemHtml(frame);
         }
     }
 
-    async updateMediaItem(mediaId) {
-        const mediaItemContainer = document.querySelector(
-            '#mediaTableItem_' + mediaId
+    async updateItem(itemId) {
+        const itemContainer = document.querySelector(
+            '#tableItem_' + itemId
         );
 
-        if (!mediaItemContainer) {
+        if (!itemContainer) {
             this.loadPage();
             return;
         }
 
-        const mediaInfoRes = await fetch(`/api/frame/${mediaId}/info`);
-        const mediaInfo = await mediaInfoRes.json();
+        const infoRes = await fetch(`/api/cron/${itemId}`);
+        const info = await infoRes.json();
 
-        const mediaTableItemHtml = await this.getMediaTableItem(mediaInfo);
+        const tableItemHtml = await this.getTableItemHtml(info);
 
-        mediaItemContainer.outerHTML = mediaTableItemHtml;
+        itemContainer.outerHTML = tableItemHtml;
     }
 
-    async getMediaTableItem(media) {
-        let info = `${media.width} x ${media.height}`;
-
-        if (media.duration) {
-            info += ` - ${new Date(media.duration * 1000).toISOString().substring(11, 19)} Length`;
-        }
-
-        return await template.load('dashboard.media.tableitem', {
-            id: media.id,
-            name: media.name,
-            type: media.type,
-            mimeType: media.mime_type,
-            fileSize: formatBytes(media.size),
-            info: info
+    async getTableItemHtml(item) {
+        return await template.load('dashboard.crons.tableitem', {
+            key: item.key,
+            status: item.status,
+            pattern: item.pattern.human,
+            nextRun: humanReadable(new Date().getTime() + item.msToNext),
         });
     }
 

@@ -76,7 +76,8 @@ export default class Core {
         this.dashboardManager = new DashboardManager(
             this.#config,
             this.server,
-            this.socket
+            this.socket,
+            this.cronManager
         );
 
         this.server.express.get("/konachan/img{/:extra}", (req, res) => {

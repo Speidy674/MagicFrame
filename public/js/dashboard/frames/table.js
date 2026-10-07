@@ -81,10 +81,17 @@ class Dashboard extends BaseDashboard {
         if (this.page != defaultPage || url.searchParams.has('page')) url.searchParams.set('page', this.page)
         if (this.limit != defaultLimit || url.searchParams.has('limit')) url.searchParams.set('limit', this.limit)
 
-        history.pushState({
-            page: this.page,
-            limit: this.limit,
-        }, `Page ${this.page} Limit ${this.limit}`, url)
+        if (history.state) {
+            history.pushState({
+                page: this.page,
+                limit: this.limit,
+            }, `Page ${this.page} Limit ${this.limit}`, url)
+        } else {
+            history.replaceState({
+                page: this.page,
+                limit: this.limit,
+            }, `Page ${this.page} Limit ${this.limit}`, url)
+        }
 
 
         const pageInfoRes = await fetch(

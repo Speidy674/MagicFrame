@@ -8,12 +8,14 @@ export default class DashboardManager {
     #config;
     #sever;
     #socket;
+    #cronManager;
 
-    constructor(config, server, socket) {
+    constructor(config, server, socket, cronManager) {
         console.log('[DashboardManager]', 'init');
         this.#config = config;
         this.#sever = server;
         this.#socket = socket;
+        this.#cronManager = cronManager;
 
         this.router = new Router();
 
@@ -106,15 +108,32 @@ export default class DashboardManager {
         });
 
         this.router.get('/crons', async (req, res) => {
-            res.render('dashboard/crons/table', this.getViewOptions(req, 'Media'));
+            res.render('dashboard/crons/table', this.getViewOptions(req, 'Crons'));
+        });
+
+        this.router.get('/crons/:id', async (req, res) => {
+            let task = this.#cronManager.info(req.params.id);
+            if (!task) {
+                this.sendError(req, res, 404)
+                return
+            }
+            res.render('dashboard/crons/detail', this.getViewOptions(req, 'Crons - ' + task.key));
         });
 
         this.router.get('/scenes', async (req, res) => {
-            res.render('dashboard/scenes/table', this.getViewOptions(req, 'Media'));
+            res.render('dashboard/scenes/table', this.getViewOptions(req, 'Scenes'));
+        });
+
+        this.router.get('/scenes/:id', async (req, res) => {
+            res.render('dashboard/scenes/detail', this.getViewOptions(req, 'Scenes - ' + req.params.id));
         });
 
         this.router.get('/playlists', async (req, res) => {
-            res.render('dashboard/playlists/table', this.getViewOptions(req, 'Media'));
+            res.render('dashboard/playlists/table', this.getViewOptions(req, 'Playlists'));
+        });
+
+        this.router.get('/playlists/:id', async (req, res) => {
+            res.render('dashboard/playlists/detail', this.getViewOptions(req, 'Playlists - ' + req.params.id));
         });
 
         this.router.get('/{*splat}', async (req, res) => {

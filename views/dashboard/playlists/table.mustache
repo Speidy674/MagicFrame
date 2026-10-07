@@ -9,7 +9,7 @@
         <script src="/js/libs/mustache.min.js"></script>
         <script src="/js/libs/lucide.min.js"></script>
         <script src="/js/core.js" type="module" defer></script>
-        <script src="/js/dashboard/crons/table.js" type="module" defer></script>
+        <script src="/js/dashboard/playlists/table.js" type="module" defer></script>
     </head>
 
     <body class="bg-background text-foreground antialiased">
@@ -29,10 +29,11 @@
                         <table
                             class="table-auto text-center items-center border-spacing-y-3.75 border-separate space-y-6">
                             <thead class="bg-accent/20">
-                                <th class="rounded-l-xl p-1">Key</th>
-                                <th class="p-1">Status</th>
-                                <th class="p-1">Pattern</th>
-                                <th class="p-1">Next Run</th>
+                                <th class="rounded-l-xl p-1">Name</th>
+                                <th class="p-1">Type</th>
+                                <th class="p-1">Mime Type</th>
+                                <th class="p-1">File Size</th>
+                                <th class="p-1">Info</th>
                                 <th class="rounded-r-xl p-1">Action</th>
                             </thead>
                             <tbody id="mediaContaier" class="align-middle">
