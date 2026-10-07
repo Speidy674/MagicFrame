@@ -26,7 +26,6 @@ export default class CronRouter extends BaseRouter {
         const totalPages = Math.ceil(count / limit);
 
         res.status(200).json({
-            tmp: { dataStart, dataEnd },
             data: rows.slice(dataStart, dataEnd),
             pagination: {
                 total_count: count,
