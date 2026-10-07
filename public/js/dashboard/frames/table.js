@@ -4,10 +4,10 @@ import BaseDashboard from '/js/dashboard/base.js';
 import OpCodesIm from '/js/enums/OpCodes.js';
 import FrameModes from '/js/enums/FrameMode.js';
 import pagination from '/js/utils/pagination.js';
-import FrameStatus from '../../../js/enums/FrameStatus.js';
+import FrameStatus from '../../../../js/enums/FrameStatus.js';
 import { humanReadable } from '/js/utils/utils.js';
 
-/** @typedef {import("../../../js/enums/OpCodes.js").OpCodesType} OpCodesType */
+/** @typedef {import("../../../../js/enums/OpCodes.js").OpCodesType} OpCodesType */
 
 /** @type {OpCodesType} */
 const OpCodes = OpCodesIm;

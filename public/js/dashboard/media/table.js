@@ -5,7 +5,7 @@ import OpCodesIm from '/js/enums/OpCodes.js';
 import pagination from '/js/utils/pagination.js';
 import { humanReadable, formatBytes } from '/js/utils/utils.js';
 
-/** @typedef {import("../../../js/enums/OpCodes.js").OpCodesType} OpCodesType */
+/** @typedef {import("../../../../js/enums/OpCodes.js").OpCodesType} OpCodesType */
 
 /** @type {OpCodesType} */
 const OpCodes = OpCodesIm;
