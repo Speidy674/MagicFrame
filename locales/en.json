@@ -1,25 +1,30 @@
 {
-    "error": {
-        "404": {
-            "title": "Not Found",
-            "code": "404",
-            "desc": "The page you're looking for was not found"
-        }
-    },
-    "dashboard": {
-        "navigation": {
-            "group": {
-                "core": {
-                    "name": "Core",
-                    "items": {
-                        "frames": "Frames",
-                        "media": "Media",
-                        "scenes": "Scenes",
-                        "playlists": "Playlists",
-                        "crons": "Crons"
-                    }
-                }
-            }
-        }
-    }
+	"error": {
+		"404": {
+			"code": "404",
+			"title": "Not Found",
+			"desc": "The page you're looking for was not found"
+		},
+		"500": {
+			"code": "500",
+			"title": "Internal Server Error",
+			"desc": "The server was unable to complete your request. Please try again later."
+		}
+	},
+	"dashboard": {
+		"navigation": {
+			"group": {
+				"core": {
+					"name": "Core",
+					"items": {
+						"frames": "Frames",
+						"media": "Media",
+						"scenes": "Scenes",
+						"playlists": "Playlists",
+						"crons": "Crons"
+					}
+				}
+			}
+		}
+	}
 }

@@ -186,6 +186,7 @@ export default class MediaManager {
                 width: null,
                 height: null,
                 duration: null,
+                deletedAt: null,
             };
 
             const isImage = this.#imageFormat.includes('.' + ext);
@@ -212,10 +213,7 @@ export default class MediaManager {
             }
 
             if (dbFile) {
-                if (dbFile.isSoftDeleted()) {
-                    await dbFile.restore();
-                }
-                await dbFile.update(media);
+                await Media.update(media, { where: { id: dbFile.id }, paranoid: false })
             } else {
                 await Media.create(media);
             }

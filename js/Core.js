@@ -11,6 +11,9 @@ import CronManager from './Cron/CronManager.js';
 import CronJobs from './enums/CronJobs.js';
 import RandomManager from './Mode/RandomManager.js';
 
+import fs from 'fs';
+import path from 'path';
+
 export default class Core {
     #config;
 
@@ -76,6 +79,38 @@ export default class Core {
             this.socket
         );
 
+        this.server.express.get("/konachan/img{/:extra}", (req, res) => {
+            const extraParm = req.params.extra ?? "";
+            const url = "https://konachan.com/post.json?tags=order:random" + extraParm + "&limit=1"
+            fetch(url).then(async (konachanRes) => {
+                const json = await konachanRes.json();
+                if (!json[0]) {
+
+                    res.sendStatus(404)
+                    return;
+                }
+                const parts = json[0].file_url.split(/[\/\\]/);
+                const fileName = decodeURI(parts.pop());
+                const img = await fetch(json[0].file_url)
+                const imgBlob = await img.blob();
+                const imgBuffer = await imgBlob.arrayBuffer();
+                res.type(imgBlob.type)
+                res.send(Buffer.from(imgBuffer))
+
+                console.debug("[konachan]", `IMG: [${json[0].id}] [${json[0].rating}]`, fileName)
+                const localFilePath = path.resolve(global.root_path, 'files/konachan/', fileName)
+                if (!fs.existsSync(localFilePath)) {
+                    fs.writeFileSync(localFilePath, Buffer.from(imgBuffer))
+                    console.debug("[konachan]", "saved img")
+                } else {
+                    console.debug("[konachan]", "img already saved")
+                }
+            }).catch(e => {
+                console.error(e);
+                res.sendStatus(500)
+            })
+        })
+
         this.server.express.get('/', (req, res) => {
             res.redirect('/frame');
         });
@@ -97,7 +132,7 @@ export default class Core {
     }
 
     #handleSocketConnnection() {
-        this.socket.connected((socket) => {});
+        this.socket.connected((socket) => { });
 
         this.socket.disconnected((socket) => {
             this.frameManager.socketDisconnect(socket);

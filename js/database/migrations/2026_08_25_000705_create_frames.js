@@ -8,6 +8,10 @@ export default {
                 allowNull: false,
                 primaryKey: true,
             },
+            label: {
+                type: DataTypes.STRING(100),
+                allowNull: false,
+            },
             status: {
                 type: DataTypes.INTEGER,
                 defaultValue: 0,

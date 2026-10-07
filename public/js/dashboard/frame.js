@@ -151,6 +151,7 @@ class Dashboard extends BaseDashboard {
 
         return await template.load('dashboard.frame.tableitem', {
             id: frame.id,
+            label: frame.label,
             mode: FrameModes.tryFromValue(frame.mode).name,
             status: status.name,
             lastSeen:

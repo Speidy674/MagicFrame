@@ -9,6 +9,11 @@ class Frame extends Model {
                     allowNull: false,
                     primaryKey: true,
                 },
+                label: {
+                    type: DataTypes.STRING(100),
+                    allowNull: false,
+                    defaultValue: 'Frame'
+                },
                 status: {
                     type: DataTypes.INTEGER,
                     defaultValue: 0,

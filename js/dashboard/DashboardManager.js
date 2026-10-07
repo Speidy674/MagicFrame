@@ -84,7 +84,12 @@ export default class DashboardManager {
         });
 
         this.router.get('/frames/:id', async (req, res) => {
-            res.render('dashboard/frames/detail', this.getViewOptions(req, 'Frame - ' + req.params.id));
+            const frame = await Frame.findByPk(req.params.id);
+            if (!frame) {
+                this.sendError(req, res, 404)
+                return
+            }
+            res.render('dashboard/frames/detail', this.getViewOptions(req, 'Frame - ' + frame.id));
         });
 
         this.router.get('/media', async (req, res) => {
@@ -92,12 +97,36 @@ export default class DashboardManager {
         });
 
         this.router.get('/media/:id', async (req, res) => {
-            res.render('dashboard/media/detail', this.getViewOptions(req, 'Media - ' + req.params.id));
+            const media = await Media.findByPk(req.params.id);
+            if (!media) {
+                this.sendError(req, res, 404)
+                return
+            }
+            res.render('dashboard/media/detail', this.getViewOptions(req, 'Media - ' + media.id));
+        });
+
+        this.router.get('/crons', async (req, res) => {
+            res.render('dashboard/crons/table', this.getViewOptions(req, 'Media'));
+        });
+
+        this.router.get('/scenes', async (req, res) => {
+            res.render('dashboard/scenes/table', this.getViewOptions(req, 'Media'));
+        });
+
+        this.router.get('/playlists', async (req, res) => {
+            res.render('dashboard/playlists/table', this.getViewOptions(req, 'Media'));
         });
 
         this.router.get('/{*splat}', async (req, res) => {
             this.sendError(req, res, 404);
         });
+
+        this.router.use((error, req, res, next) => {
+            console.error('[DashboardManager]', error.message)
+            console.error(error.stack);
+
+            this.sendError(req, res, 500);
+        })
     }
 
     sendError(req, res, errorCode) {
